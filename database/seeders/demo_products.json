@@ -1,0 +1,93 @@
+{
+    "products": {
+        "id": 8188838740262,
+        "name": "product 001",
+        "handle": "product-001",
+        "variants": [
+            {
+                "id": 44655695724838,
+                "product_id": 8188838740262,
+                "title": "Ice L",
+                "price": "700",
+                "sku": "",
+                "compare_at_price": null,
+                "option1": "Ice",
+                "option2": "L",
+                "option3": null,
+                "created_at": "2023-03-17T04:11:39-04:00",
+                "updated_at": "2023-03-17T04:11:45-04:00",
+                "inventory_quantity": 1,
+                "old_inventory_quantity": 1
+            },
+            {
+                "id": 44655695757606,
+                "product_id": 8188838740262,
+                "title": "Dawn L",
+                "price": "700",
+                "sku": "",
+                "compare_at_price": null,
+                "option1": "Dawn",
+                "option2": "L",
+                "option3": null,
+                "created_at": "2023-03-17T04:11:39-04:00",
+                "updated_at": "2023-03-17T04:11:45-04:00",
+                "inventory_quantity": 8,
+                "old_inventory_quantity": 8
+            },
+            {
+                "id": 44655695757607,
+                "product_id": 8188838740262,
+                "title": "Ice M",
+                "price": "700",
+                "sku": "",
+                "compare_at_price": null,
+                "option1": "Ice",
+                "option2": "M",
+                "option3": null,
+                "created_at": "2023-03-17T04:11:39-04:00",
+                "updated_at": "2023-03-17T04:11:45-04:00",
+                "inventory_quantity": 8,
+                "old_inventory_quantity": 8
+            },
+            {
+                "id": 44655695757608,
+                "product_id": 8188838740262,
+                "title": "Dawn M",
+                "price": "700",
+                "sku": "",
+                "compare_at_price": null,
+                "option1": "Dawn",
+                "option2": "M",
+                "option3": null,
+                "created_at": "2023-03-17T04:11:39-04:00",
+                "updated_at": "2023-03-17T04:11:45-04:00",
+                "inventory_quantity": 8,
+                "old_inventory_quantity": 8
+            }
+        ],
+        "options": [
+            {
+                "id": 10386460049702,
+                "product_id": 8188838740262,
+                "name": "Color",
+                "values": [
+                    "Ice",
+                    "Dawn",
+                    "Powder",
+                    "Electric",
+                    "Sunset"
+                ]
+            },
+            {
+                "id": 10386460049703,
+                "product_id": 8188838740262,
+                "name": "Size",
+                "values": [
+                    "S",
+                    "M",
+                    "L"
+                ]
+            }
+        ]
+    }
+}
