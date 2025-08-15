@@ -50,7 +50,7 @@ class UpdateVersionAppListener
         // dispatch(new AddScriptTag($shop->shopify_domain, $shop->access_token));
 
         // $shop->update([
-        //     'app_version' => config('fa_common.app_version'),
+        //     'app_version' => config('tf_common.app_version'),
         //     'access_token' => $token,
         // ]);
     }
@@ -83,7 +83,7 @@ class UpdateVersionAppListener
             'primary_locale' => $storeDataApi->primary_locale,
             'app_status' => 1,
             'app_plan' => 'free',
-            'app_version' => config('fa_common.app_version'),
+            'app_version' => config('tf_common.app_version'),
         ];
 
         // $store = $this->storeRepository->where('shopify_domain', $shopifyDomain)->first();

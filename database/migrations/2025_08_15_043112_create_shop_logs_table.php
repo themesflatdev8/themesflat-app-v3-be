@@ -13,8 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('table_store_logs', function (Blueprint $table) {
+        Schema::create('shop_logs', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('shop_id');
+            $table->string('event_type', 50);
+            $table->string('status', 50);
+            $table->text('message')->nullable();
+            $table->foreign('shop_id')
+                ->references('shop_id')
+                ->on('shops')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -26,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('table_store_logs');
+        Schema::dropIfExists('shop_logs');
     }
 };

@@ -1,6 +1,6 @@
 <?php
 return [
-    'app_version' => "2.0",
+    'app_version' => "1.0",
     'app_name' => 'ts',
     'paginate_limit' => 20,
     'cdn_url' => env('CDN_URL'),

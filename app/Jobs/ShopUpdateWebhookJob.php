@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\StoreModel;
+use App\Models\ShopModel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,63 +34,63 @@ class ShopUpdateWebhookJob implements ShouldQueue
     {
         $sentry = app('sentry');
         try {
-            $store = StoreModel::where('shopify_domain', $this->shopifyDomain)->first();
+            $shop = ShopModel::where('shop', $this->shopifyDomain)->first();
 
             $hasChange = false;
             $res = $this->data;
 
-            if ($store->domain != $res['domain']) {
+            if ($shop->domain != $res['domain']) {
                 $hasChange = true;
             }
 
-            if ($store->name != $res['name']) {
+            // if ($shop->name != $res['name']) {
+            //     $hasChange = true;
+            // }
+
+            if ($shop->shopify_plan != $res['plan_name']) {
                 $hasChange = true;
             }
 
-            if ($store->shopify_plan != $res['plan_name']) {
+            if ($shop->owner != $res['shop_owner']) {
                 $hasChange = true;
             }
 
-            if ($store->owner != $res['shop_owner']) {
+            if ($shop->email != $res['email']) {
                 $hasChange = true;
             }
 
-            if ($store->email != $res['email']) {
-                $hasChange = true;
-            }
-
-            if ($store->phone != $res['phone']) {
-                $hasChange = true;
-            }
-            if ($store->timezone != $res['iana_timezone']) {
-                $hasChange = true;
-            }
-            if ($store->country != $res['country']) {
-                $hasChange = true;
-            }
-            if ($store->primary_locale != $res['primary_locale']) {
-                $hasChange = true;
-            }
-            if ($store->currency != $res['currency']) {
-                $hasChange = true;
-            }
+            // if ($store->phone != $res['phone']) {
+            //     $hasChange = true;
+            // }
+            // if ($store->timezone != $res['iana_timezone']) {
+            //     $hasChange = true;
+            // }
+            // if ($store->country != $res['country']) {
+            //     $hasChange = true;
+            // }
+            // if ($store->primary_locale != $res['primary_locale']) {
+            //     $hasChange = true;
+            // }
+            // if ($store->currency != $res['currency']) {
+            //     $hasChange = true;
+            // }
 
             if ($hasChange) {
                 echo 'has change';
-                $storeData = [
+                $shopData = [
                     'domain' => $res['domain'],
-                    'name' => $res['name'],
+                    // 'name' => $res['name'],
                     'shopify_plan' => $res['plan_name'],
                     'owner' => $res['shop_owner'],
                     'email' => $res['email'],
                     'phone' => $res['phone'],
                     'timezone' => $res['iana_timezone'],
                     'country' => $res['country'],
-                    'primary_locale' => $res['primary_locale'],
-                    'currency' => $res['currency'],
+                    // 'primary_locale' => $res['primary_locale'],
+                    // 'currency' => $res['currency'],
                 ];
 
-                $store->update($storeData);
+                $shop->update($shopData);
             }
         } catch (\Exception $exception) {
             // dump($exception->getMessage());

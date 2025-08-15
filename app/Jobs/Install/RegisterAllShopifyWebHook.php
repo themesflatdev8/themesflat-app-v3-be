@@ -99,46 +99,46 @@ class RegisterAllShopifyWebHook implements ShouldQueue
     {
         $webhooks = [
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/uninstall',
+                'address' => config('tf_common.hook_url') . '/api/webhook/uninstall',
                 'topic' => 'app/uninstalled',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/shop/update',
+                'address' => config('tf_common.hook_url') . '/api/webhook/shop/update',
                 'topic' => 'shop/update',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/products/create',
+                'address' => config('tf_common.hook_url') . '/api/webhook/products/create',
                 'topic' => 'products/create',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/products/update',
+                'address' => config('tf_common.hook_url') . '/api/webhook/products/update',
                 'topic' => 'products/update',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/products/delete',
+                'address' => config('tf_common.hook_url') . '/api/webhook/products/delete',
                 'topic' => 'products/delete',
             ],
 
 
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/collections/create',
+                'address' => config('tf_common.hook_url') . '/api/webhook/collections/create',
                 'topic' => 'collections/create',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/collections/update',
+                'address' => config('tf_common.hook_url') . '/api/webhook/collections/update',
                 'topic' => 'collections/update',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/collections/delete',
+                'address' => config('tf_common.hook_url') . '/api/webhook/collections/delete',
                 'topic' => 'collections/delete',
             ],
 
             // [
-            //     'address' => config('fa_common.hook_url') . '/api/webhook/themes/publish',
+            //     'address' => config('tf_common.hook_url') . '/api/webhook/themes/publish',
             //     'topic' => 'themes/publish',
             // ],
             // [
-            //     'address' => config('fa_common.hook_url') . '/api/webhook/order/create',
+            //     'address' => config('tf_common.hook_url') . '/api/webhook/order/create',
             //     'topic' => 'orders/create',
             // ]
         ];

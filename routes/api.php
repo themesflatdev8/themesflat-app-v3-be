@@ -322,14 +322,14 @@ Route::group([
 //     });
 // });
 
-function encryptData($data, $passkey)
-{
-    $method = "AES-256-CBC";
-    $ivSize = openssl_cipher_iv_length($method);
-    $iv = openssl_random_pseudo_bytes($ivSize);
-    $encrypted = openssl_encrypt($data, $method, $passkey, OPENSSL_RAW_DATA, $iv);
-    return base64_encode($iv . $encrypted);
-}
+// function encryptData($data, $passkey)
+// {
+//     $method = "AES-256-CBC";
+//     $ivSize = openssl_cipher_iv_length($method);
+//     $iv = openssl_random_pseudo_bytes($ivSize);
+//     $encrypted = openssl_encrypt($data, $method, $passkey, OPENSSL_RAW_DATA, $iv);
+//     return base64_encode($iv . $encrypted);
+// }
 
 Route::post('/remove-hook',  function (Request $request) {
     if (!empty($request->get('store_id'))) {

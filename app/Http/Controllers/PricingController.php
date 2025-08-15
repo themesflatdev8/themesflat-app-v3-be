@@ -63,7 +63,7 @@ class PricingController extends Controller
             'app_plan' => $newPlan,
             'trial_on' => date('Y-m-d H:i:s'),
             'trial_days' => getTrialDays($store),
-            // 'pricing_version' => config('fa_common.pricing_version'),
+            // 'pricing_version' => config('tf_common.pricing_version'),
         ];
 
         $store->update($dataSave);

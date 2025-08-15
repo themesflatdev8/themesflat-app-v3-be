@@ -60,7 +60,7 @@ class ProductWebhookJob implements ShouldQueue
                     $productId = $product['id'];
                     $storeInfo = StoreModel::where('shopify_domain', $this->shopifyDomain)->first();
                     $storeId = $storeInfo->store_id;
-                    if (empty($storeInfo->app_plan) || $storeInfo->app_version != config('fa_common.app_version')) {
+                    if (empty($storeInfo->app_plan) || $storeInfo->app_version != config('tf_common.app_version')) {
                         return false;
                     }
 
@@ -174,7 +174,7 @@ class ProductWebhookJob implements ShouldQueue
                     $storeInfo = StoreModel::where('shopify_domain', $this->shopifyDomain)->first();
                     $storeId = $storeInfo->store_id;
 
-                    if (empty($storeInfo->app_plan) || $storeInfo->app_version != config('fa_common.app_version')) {
+                    if (empty($storeInfo->app_plan) || $storeInfo->app_version != config('tf_common.app_version')) {
                         return false;
                     }
 
@@ -234,7 +234,7 @@ class ProductWebhookJob implements ShouldQueue
     {
         $result = [];
         foreach ($variants as $variant) {
-            // if ($variant['title'] == config('fa_common.ignore_variant')) {
+            // if ($variant['title'] == config('tf_common.ignore_variant')) {
             //     continue;
             // }
             $image = null;
@@ -274,7 +274,7 @@ class ProductWebhookJob implements ShouldQueue
         $result = [];
         $duration = 0;
         foreach ($options as $option) {
-            // if ($option['name'] == config('fa_common.ignore_option')) {
+            // if ($option['name'] == config('tf_common.ignore_option')) {
             //     continue;
             // }
             $duration = $duration + 1;

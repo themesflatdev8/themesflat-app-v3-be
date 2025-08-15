@@ -20,8 +20,8 @@ class TAuth extends OAuth
         $host = str_replace('http://', '', $host);
 
         Context::initialize(
-            config('fa_common.shopify_api_key', 'not_defined'),
-            config('fa_common.shopify_api_secret', 'not_defined'),
+            config('tf_common.shopify_api_key', 'not_defined'),
+            config('tf_common.shopify_api_secret', 'not_defined'),
             implode(',', config('fa_shopify.scopes', 'not_defined')),
             $host,
             new DbSessionStorage(),
@@ -119,10 +119,11 @@ class TAuth extends OAuth
 
         $client = new Http($shop);
         $response = self::requestAccessToken($client, $post);
+        dump(1, $response->getStatusCode(), $response->getDecodedBody());
         if ($response->getStatusCode() !== 200) {
+            dump($response->getDecodedBody());
             throw new HttpRequestException("Failed to get access token: {$response->getDecodedBody()}");
         }
-
         return $response->getDecodedBody()['access_token'];
     }
 }

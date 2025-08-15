@@ -91,7 +91,7 @@ class InstallAppListener
             'timezone' => $storeDataApi->iana_timezone,
             'app_status' => 1,
             'app_plan' => 'free',
-            'app_version' => config('fa_common.app_version'),
+            'app_version' => config('tf_common.app_version'),
         ];
 
         // $store = $this->storeRepository->where('shopify_domain', $shopifyDomain)->first();
