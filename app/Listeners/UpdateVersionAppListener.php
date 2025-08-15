@@ -31,26 +31,25 @@ class UpdateVersionAppListener
     public function handle($event)
     {
         $data = $event->store;
+        dispatch(new RegisterAllShopifyWebHook($data['shopify_domain'], $data['access_token']));
+        // if ($shop->app_version < 3.2) {
+        // dispatch(new RegisterAllShopifyWebHook($shop->shop, $shop->access_token));
+        // dispatch(new SyncShopifyProductsJobV2($shop->shop_id, $shop->shop, $shop->access_token));
+        // dispatch(new SyncCollectionJob($shop->shop_id, $shop->shop, $shop->access_token, 'custom_collections'));
+        // dispatch(new SyncCollectionJob($shop->shop_id, $shop->shop, $shop->access_token, 'smart_collections'));
+        // }
 
-        $shop = $data['shop'];
-        if ($shop->app_version < 3.2) {
-            dispatch(new RegisterAllShopifyWebHook($shop->shopify_domain, $shop->access_token));
-            dispatch(new SyncShopifyProductsJobV2($shop->store_id, $shop->shopify_domain, $shop->access_token));
-            dispatch(new SyncCollectionJob($shop->store_id, $shop->shopify_domain, $shop->access_token, 'custom_collections'));
-            dispatch(new SyncCollectionJob($shop->store_id, $shop->shopify_domain, $shop->access_token, 'smart_collections'));
-        }
-
-        if ($shop->app_version < 5.0) {
-            dispatch(new CreateBundleCartJob($shop->store_id, $shop->shopify_domain, $shop->access_token));
-        }
-        if ($shop->app_version < 6.0) {
-            dispatch(new CreateBundleSearchJob($shop->store_id, $shop->shopify_domain, $shop->access_token));
-        }
+        // if ($shop->app_version < 5.0) {
+        //     dispatch(new CreateBundleCartJob($shop->store_id, $shop->shop, $shop->access_token));
+        // }
+        // if ($shop->app_version < 6.0) {
+        //     dispatch(new CreateBundleSearchJob($shop->store_id, $shop->shopify_domain, $shop->access_token));
+        // }
 
         // dispatch(new AddScriptTag($shop->shopify_domain, $shop->access_token));
 
         // $shop->update([
-        //     'app_version' => config('fa_common.app_version'),
+        //     'app_version' => config('tf_common.app_version'),
         //     'access_token' => $token,
         // ]);
     }
@@ -83,7 +82,7 @@ class UpdateVersionAppListener
             'primary_locale' => $storeDataApi->primary_locale,
             'app_status' => 1,
             'app_plan' => 'free',
-            'app_version' => config('fa_common.app_version'),
+            'app_version' => config('tf_common.app_version'),
         ];
 
         // $store = $this->storeRepository->where('shopify_domain', $shopifyDomain)->first();

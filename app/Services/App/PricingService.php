@@ -108,7 +108,7 @@ class PricingService extends AbstractService
                     'trial_on' => date('Y-m-d H:i:s'),
                     'trial_days' => getTrialDays($storeInfo),
                     // 'show_popup_ungrateful' => 0,
-                    // 'pricing_version' => config('fa_common.pricing_version'),
+                    // 'pricing_version' => config('tf_common.pricing_version'),
                 ];
 
                 $listDiscounts = BundlesModel::where('store_id', $storeInfo['id'])->where('useDiscount', 1)->get();

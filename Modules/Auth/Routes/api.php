@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 
+Route::get('/test-session', function () {
+    session(['foo' => 'bar']);
+    return response()->json(['foo' => session('foo')]);
+});
 Route::post('/', 'AuthController@index');
 Route::get('/callback', 'AuthController@handleCallback');
 

@@ -4,6 +4,7 @@
 namespace App\Repository;
 
 use App\Facade\SystemCache;
+use App\Models\ShopModel;
 use App\Models\StoreModel;
 use Illuminate\Support\Facades\Cache;
 
@@ -17,19 +18,19 @@ class StoreRepository extends AbstractRepository
 
     public function model()
     {
-        return StoreModel::class;
+        return ShopModel::class;
     }
 
 
     /**
-     * @param int $storeId
+     * @param int $shopId
      * @return mixed
      */
-    public function detail(int $storeId, $force = false)
+    public function detail(int $shopId, $force = false)
     {
-        $storeInfo = $this->model()::find($storeId)->toArray();
+        $shopInfo = $this->model()::find($shopId)->toArray();
 
-        return $storeInfo;
+        return $shopInfo;
     }
 
     /**
@@ -38,19 +39,19 @@ class StoreRepository extends AbstractRepository
      */
     public function detailByShopifyDomain(string $domain)
     {
-        $storeInfo = StoreModel::where("shopify_domain", $domain)
+        $shopInfo = ShopModel::where("shop", $domain)
             ->first()
             ->toArray();
 
-        return $storeInfo;
+        return $shopInfo;
     }
 
 
-    public function getPlan($storeInfo)
+    public function getPlan($shopInfo)
     {
         $planInfo = [];
         $plans = config('fa_plans');
-        $appPlan = $storeInfo['app_plan'];
+        $appPlan = $shopInfo['app_plan'];
         if (array_key_exists($appPlan, $plans)) {
             $planInfo = $plans[$appPlan];
         }

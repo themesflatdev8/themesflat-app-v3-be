@@ -182,7 +182,7 @@ class SaveSyncProductsJobV2 implements ShouldQueue
         $duration = 0;
         foreach ($options as $option) {
             $duration = $duration + 1;
-            // if ($option['name'] == config('fa_common.ignore_option')) {
+            // if ($option['name'] == config('tf_common.ignore_option')) {
             //     continue;
             // }
             $item  = [

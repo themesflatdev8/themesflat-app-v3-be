@@ -12,10 +12,10 @@ function getTrialDays($storeInfo)
 {
     if (is_array($storeInfo)) {
         $trialOn = $storeInfo['trial_on'];
-        $trialDays = !empty($storeInfo['trial_days']) ? $storeInfo['trial_days'] : config('fa_common.trial_days');
+        $trialDays = !empty($storeInfo['trial_days']) ? $storeInfo['trial_days'] : config('tf_common.trial_days');
     } else {
         $trialOn = $storeInfo->trial_on;
-        $trialDays = !empty($storeInfo->trial_days) ? $storeInfo->trial_days : config('fa_common.trial_days');
+        $trialDays = !empty($storeInfo->trial_days) ? $storeInfo->trial_days : config('tf_common.trial_days');
     }
 
     if (!empty($trialOn)) {

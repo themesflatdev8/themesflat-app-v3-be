@@ -95,11 +95,11 @@ class RegisterBasicShopifyWebHook implements ShouldQueue
     {
         $webhooks = [
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/uninstall',
+                'address' => config('tf_common.hook_url') . '/api/webhook/uninstall',
                 'topic' => 'app/uninstalled',
             ],
             [
-                'address' => config('fa_common.hook_url') . '/api/webhook/shop/update',
+                'address' => config('tf_common.hook_url') . '/api/webhook/shop/update',
                 'topic' => 'shop/update',
             ],
         ];

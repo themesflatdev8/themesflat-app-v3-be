@@ -139,7 +139,7 @@ class SaveSyncProductsJob implements ShouldQueue
     {
         $result = [];
         foreach ($variants as $variant) {
-            // if ($variant['title'] == config('fa_common.ignore_variant')) {
+            // if ($variant['title'] == config('tf_common.ignore_variant')) {
             //     continue;
             // }
             $image = null;
@@ -180,7 +180,7 @@ class SaveSyncProductsJob implements ShouldQueue
         $duration = 0;
         foreach ($options as $option) {
             $duration = $duration + 1;
-            // if ($option['name'] == config('fa_common.ignore_option')) {
+            // if ($option['name'] == config('tf_common.ignore_option')) {
             //     continue;
             // }
             $item  = [

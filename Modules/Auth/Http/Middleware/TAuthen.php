@@ -4,13 +4,14 @@ namespace Modules\Auth\Http\Middleware;
 
 use App\Facade\SystemCache;
 use App\Models\StoreModel;
+use App\Models\ShopModel;
 use Firebase\JWT\JWT;
 use Closure;
 use Exception;
 use Modules\Auth\Lib\AppContext;
 use Modules\Auth\Services\TAuthService;
 use Shopify\Context;
-
+use Shopify\Rest\Admin2021_07\Shop;
 
 class TAuthen
 {
@@ -37,13 +38,13 @@ class TAuthen
         if (empty($shopVerify) || $shopVerify != $shop) {
             return response()->json(['data' => $authService->getUrlAuthorize(['shop' => $shop]), 'check' => 1], 401);
         }
-        $store = StoreModel::where("shopify_domain", $shop)->first();
+        // $store = StoreModel::where("shopify_domain", $shop)->first();
+        $shop = ShopModel::where("shop", $shop)->first();
 
         // store invalid
-        if (empty($store) || empty($store->app_status)) {
+        if (empty($shop) || empty($shop->is_active)) {
             sleep(2);
-            $store = StoreModel::where("shopify_domain", $shop)->first();
-            if (empty($store) || empty($store->app_status)) {
+            if (empty($shop) || empty($store->is_active)) {
                 return response()->json([
                     'data' => $authService->getUrlAuthorize(['shop' => $shop]),
                     'message' => "Unauthenticated 2",
@@ -53,13 +54,13 @@ class TAuthen
             }
         }
 
-        if ($store->app_version != config('fa_common.app_version')) {
+        if ($shop->app_version != config('tf_common.app_version')) {
             return response()->json(['data' => $authService->getUrlAuthorize(['shop' => $shop]), 'message' => "Unauthenticated 3"], 401);
         }
 
-        AppContext::initialize($store->toArray());
+        AppContext::initialize($shop->toArray());
         $request->merge([
-            'storeInfo' => $store,
+            'shopInfo' => $shop,
         ]);
 
         return $next($request);
