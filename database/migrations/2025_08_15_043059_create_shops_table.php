@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('shops', function (Blueprint $table) {
             $table->unsignedBigInteger('shop_id')->primary();
             $table->string('shop', 255)->unique();
-            $table->text('access_token');
+            $table->text('access_token')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('shopify_plan');
             $table->float('app_version')->nullable();

@@ -34,30 +34,32 @@ class InstallAppListener
      */
     public function handle($event)
     {
-        $data = $event->store;
-        info('listener event install');
-        //get and save store info from shopify
-        $storeDataApi = $this->getShopInfoFromShopify($data['shopify_domain'], $data['access_token']);
-        if (!empty($storeDataApi)) {
-            $this->saveStoreInfo($storeDataApi, $data['shopify_domain'], $data['access_token'], $data['userType']);
-            // dispatch(new SyncShopifyProductsJobV2($storeDataApi->id, $data['shopify_domain'], $data['access_token']));
-            // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'custom_collections'));
-            // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'smart_collections'));
-            // dispatch(new CreateBundleCartJob($storeDataApi->id, $data['shopify_domain'], $data['access_token']));
+        try {
+            $data = $event->store;
+            //get and save store info from shopify
+            $storeDataApi = $this->getShopInfoFromShopify($data['shopify_domain'], $data['access_token']);
+            if (!empty($storeDataApi)) {
+                $this->saveStoreInfo($storeDataApi, $data['shopify_domain'], $data['access_token'], $data['userType']);
+                // dispatch(new SyncShopifyProductsJobV2($storeDataApi->id, $data['shopify_domain'], $data['access_token']));
+                // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'custom_collections'));
+                // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'smart_collections'));
+                // dispatch(new CreateBundleCartJob($storeDataApi->id, $data['shopify_domain'], $data['access_token']));
 
-            // add settings default
-            $settings = config('fa_switcher.setting_default');
-            // $this->settingModel->updateOrCreate(
-            //     ['id' => $storeDataApi->id],
-            //     [
-            //         'settings' => $settings,
-            //         'template_version' => config('fa_switcher.template_version')
-            //     ]
-            // );
-            info('dispatch register all shopify web hook');
-            dispatch(new RegisterAllShopifyWebHook($data['shopify_domain'], $data['access_token']));
+                // add settings default
+                // $settings = config('fa_switcher.setting_default');
+                // $this->settingModel->updateOrCreate(
+                //     ['id' => $storeDataApi->id],
+                //     [
+                //         'settings' => $settings,
+                //         'template_version' => config('fa_switcher.template_version')
+                //     ]
+                // );
+                dispatch(new RegisterAllShopifyWebHook($data['shopify_domain'], $data['access_token']));
 
-            // dispatch(new GenerateBundleJob($storeDataApi->id, $data['shopify_domain'], $data['access_token']))->delay(now()->addSeconds(20));
+                // dispatch(new GenerateBundleJob($storeDataApi->id, $data['shopify_domain'], $data['access_token']))->delay(now()->addSeconds(20));
+            }
+        } catch (\Exception $e) {
+            app('sentry')->captureException($e);
         }
     }
 
@@ -75,30 +77,23 @@ class InstallAppListener
     private function saveStoreInfo($storeDataApi, string $shopifyDomain, string $accessToken, string $userType)
     {
         $dataSave = [
-            'store_id' => $storeDataApi->id,
-            'shopify_domain' => $shopifyDomain,
+            'shop_id' => $storeDataApi->id,
+            'shop' => $shopifyDomain,
             'access_token' => $accessToken,
-            'name' => $storeDataApi->name,
             'domain' => $storeDataApi->domain,
             'shopify_plan' => $storeDataApi->plan_name,
-            'owner' => $storeDataApi->shop_owner,
             'email' => $storeDataApi->email,
             'phone' => $storeDataApi->phone,
-            'country' => $storeDataApi->country,
-            'currency' => $storeDataApi->currency,
-            'money_format' => $storeDataApi->money_format,
-            'primary_locale' => $storeDataApi->primary_locale,
-            'timezone' => $storeDataApi->iana_timezone,
-            'app_status' => 1,
+            'is_active' => 1,
             'app_plan' => 'free',
             'app_version' => config('tf_common.app_version'),
+            'installed_at' => now()
         ];
 
-        // $store = $this->storeRepository->where('shopify_domain', $shopifyDomain)->first();
         if ($userType == 'new_install') {
             $save = $this->storeRepository->create($dataSave);
         } else {
-            $save = $this->storeRepository->where('shopify_domain', $shopifyDomain)->update($dataSave);
+            $save = $this->storeRepository->where('shop', $shopifyDomain)->update($dataSave);
         }
 
         return $save;

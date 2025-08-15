@@ -10,6 +10,7 @@ class ShopModel extends Model
      * @var string
      */
     protected $table = 'shops';
+    protected $primaryKey = 'shop_id';
     /**
      * @var array
      */

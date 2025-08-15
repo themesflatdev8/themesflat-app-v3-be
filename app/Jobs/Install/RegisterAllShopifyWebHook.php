@@ -39,12 +39,9 @@ class RegisterAllShopifyWebHook implements ShouldQueue
             $shopifyApiService->setShopifyHeader($this->shopifyDomain, $this->accessToken);
 
             //Delete all webHook before add Web Hook
-            info('start delete all shopify web hook');
             $this->deleteAllWebHook($shopifyApiService);
-            info('start register all shopify web hook');
             $listWebHookRegister = $this->listWebhookRegister($shopifyApiService);
             foreach ($listWebHookRegister as $k => $v) {
-                info("topic: " . $v['topic']);
                 try {
                     $shopifyApiService->post('webhooks.json', [
                         'webhook' => [
@@ -55,12 +52,10 @@ class RegisterAllShopifyWebHook implements ShouldQueue
                     ]);
                 } catch (\Exception $exception) {
                     // dump($exception->getMessage());
-                    info('Error Register All Shopify WebHook: ' . $exception->getMessage());
                     $sentry->captureException($exception);
                 }
             }
         } catch (\Exception $exception) {
-            info('Error Register All Shopify WebHook: ' . $exception->getMessage());
             $sentry->captureException($exception);
         }
     }

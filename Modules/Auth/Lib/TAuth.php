@@ -119,9 +119,7 @@ class TAuth extends OAuth
 
         $client = new Http($shop);
         $response = self::requestAccessToken($client, $post);
-        dump(1, $response->getStatusCode(), $response->getDecodedBody());
         if ($response->getStatusCode() !== 200) {
-            dump($response->getDecodedBody());
             throw new HttpRequestException("Failed to get access token: {$response->getDecodedBody()}");
         }
         return $response->getDecodedBody()['access_token'];
