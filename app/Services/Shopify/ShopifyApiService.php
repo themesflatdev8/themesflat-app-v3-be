@@ -34,7 +34,7 @@ class ShopifyApiService
     public function get(string $url, array $data = [], $responseType = 'content')
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'GET',
             $uri,
@@ -63,7 +63,7 @@ class ShopifyApiService
      */
     public function post(string $url, array $data = [], $apiVersion = null)
     {
-        $version = config('fa_shopify.api_version');
+        $version = config('tf_shopify.api_version');
         if(!empty($apiVersion)){
             $version = $apiVersion;
         }
@@ -94,7 +94,7 @@ class ShopifyApiService
     public function put(string $url, array $data = [])
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'PUT',
             $uri,
@@ -119,7 +119,7 @@ class ShopifyApiService
     public function drop(string $url)
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'DELETE',
             $uri,
@@ -201,7 +201,7 @@ class ShopifyApiService
             return  false;
         }
     }
-    
+
     public function syncMetaResources($domain, $token, $page)
     {
         try {
@@ -318,7 +318,7 @@ class ShopifyApiService
     {
         $client = new Client();
 
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'GET',
             $uri,

@@ -22,7 +22,7 @@ class TAuth extends OAuth
         Context::initialize(
             config('tf_common.shopify_api_key', 'not_defined'),
             config('tf_common.shopify_api_secret', 'not_defined'),
-            implode(',', config('fa_shopify.scopes', 'not_defined')),
+            implode(',', config('tf_shopify.scopes', 'not_defined')),
             $host,
             new DbSessionStorage(),
             // the following four params are needed in order to set userAgentPrefix

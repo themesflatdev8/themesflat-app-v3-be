@@ -31,7 +31,7 @@ class MarketService extends AbstractService
                 primaryMarket{
                             id,
                             name,
-                            currencySettings 
+                            currencySettings
                             {
                                 baseCurrency
                                 {
@@ -80,9 +80,9 @@ class MarketService extends AbstractService
                                 },
                                 subfolderSuffix
                             }
-                        
+
                     }
-                
+
             }';
             $result =  $this->postGraphQL($storeInfo, $graphqlParam);
 
@@ -124,7 +124,7 @@ class MarketService extends AbstractService
                 marketByGeography(countryCode: $country){
                             id,
                             name,
-                            currencySettings 
+                            currencySettings
                             {
                                 baseCurrency
                                 {
@@ -198,7 +198,7 @@ class MarketService extends AbstractService
     private function postGraphQL($storeInfo, $data)
     {
         $client = new Client();
-        $url = "https://$storeInfo->shopify_domain/admin/api/" . config('fa_shopify.api_market_version') . "/graphql.json";
+        $url = "https://$storeInfo->shopify_domain/admin/api/" . config('tf_shopify.api_market_version') . "/graphql.json";
         $response = $client->request(
             'POST',
             $url,
@@ -230,7 +230,7 @@ class MarketService extends AbstractService
                             node{
                                 id,
                                 name,
-                                currencySettings 
+                                currencySettings
                                 {
                                     baseCurrency
                                     {

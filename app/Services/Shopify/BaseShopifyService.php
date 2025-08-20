@@ -34,7 +34,7 @@ abstract class BaseShopifyService
     protected function get(string $url, array $data = [], $responseType = 'content')
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'GET',
             $uri,
@@ -64,7 +64,7 @@ abstract class BaseShopifyService
     protected function post(string $url, array $data = [])
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'POST',
             $uri,
@@ -90,7 +90,7 @@ abstract class BaseShopifyService
     protected function put(string $url, array $data = [])
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'PUT',
             $uri,
@@ -115,7 +115,7 @@ abstract class BaseShopifyService
     protected function drop(string $url)
     {
         $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('fa_shopify.api_version'), $url);
+        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, config('tf_shopify.api_version'), $url);
         $response = $client->request(
             'DELETE',
             $uri,
