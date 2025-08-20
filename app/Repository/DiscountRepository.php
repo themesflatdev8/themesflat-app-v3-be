@@ -43,4 +43,22 @@ class DiscountRepository extends AbstractRepository
 
         return $discounts;
     }
+
+    public function getDiscounts(int $shopId, array $filter = [])
+    {
+
+        $query = $this->model->where('shop_id', $shopId);
+        $limit = data_get($filter, 'limit', 10);
+        if (!empty($filter['status'])) {
+            $query->where('status', $filter['status']);
+        }
+
+        if (!empty($filter['type'])) {
+            $query->where('type', $filter['type']);
+        }
+
+        $discounts = $query->paginate($limit);
+
+        return $discounts;
+    }
 }

@@ -55,9 +55,9 @@ class TAuthService extends AbstractAuthService
                     return ['status' => false, 'message' => 'empty store', 'data' => $this->getUrlAuthorize($data)];
                 }
             }
-            SystemCache::mixCachePaginate(config('fa_setting.cache.list_valid_sessions'), config('fa_setting.cache.list_store_session'), [$data['session'] => $data["shop"]]);
-            SystemCache::addItemToHash(config('fa_setting.cache.list_store_key'), $shop->shop_id, $shop->shop);
-            SystemCache::addItemToHash(config('fa_setting.cache.store_detail_key'), $shop->shop, $shop->toArray());
+            SystemCache::mixCachePaginate(config('tf_setting.cache.list_valid_sessions'), config('tf_setting.cache.list_store_session'), [$data['session'] => $data["shop"]]);
+            SystemCache::addItemToHash(config('tf_setting.cache.list_store_key'), $shop->shop_id, $shop->shop);
+            SystemCache::addItemToHash(config('tf_setting.cache.store_detail_key'), $shop->shop, $shop->toArray());
             $data = $shop->toArray();
 
             $planInfo = app(StoreRepository::class)->getPlan($data);

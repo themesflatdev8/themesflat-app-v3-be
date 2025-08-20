@@ -33,4 +33,13 @@ class DiscountsController extends Controller
         dispatch(new SyncDiscountJob($shopInfo->shop_id, $shopInfo->shop, $shopInfo->access_token, true, 250));
         return response(['message' => 'Sync successful']);
     }
+
+    public function getDiscounts(Request $request)
+    {
+        $data = $request->all();
+        $shopInfo = data_get($data, 'shopInfo', []);
+        $filter = data_get($data, 'filter', []);
+        $discounts = $this->discountRepository->getDiscounts($shopInfo->shop_id, $filter);
+        return response(['data' => $discounts]);
+    }
 }

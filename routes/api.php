@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+require __DIR__ . '/discount.php';
+require __DIR__ . '/comment.php';
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -68,7 +72,6 @@ Route::group(['prefix' => 'webhook'], function () {
     });
 });
 
-require __DIR__ . '/discount.php';
 
 
 // Route::group([
