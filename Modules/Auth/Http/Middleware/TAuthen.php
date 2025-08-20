@@ -33,12 +33,12 @@ class TAuthen
         $jwtPayload = JWT::decode($matches[1], Context::$API_SECRET_KEY, array('HS256'));
 
         $shop = preg_replace('/^https:\/\//', '', $jwtPayload->dest);
-        // $shopVerify = $this->authenticateSession($session);
+        $shopVerify = $this->authenticateSession($session);
         // dd($shopVerify);
         //session invalid
-        // if (empty($shopVerify) || $shopVerify != $shop) {
-        //     return response()->json(['data' => $authService->getUrlAuthorize(['shop' => $shop]), 'check' => 1], 401);
-        // }
+        if (empty($shopVerify) || $shopVerify != $shop) {
+            return response()->json(['data' => $authService->getUrlAuthorize(['shop' => $shop]), 'check' => 1], 401);
+        }
         $shop = ShopModel::where("shop", $shop)->first();
         // store invalid
         if (empty($shop) || empty($shop->is_active)) {
@@ -68,12 +68,12 @@ class TAuthen
     private function authenticateSession($sessionId)
     {
         $validPoint = strtotime('now - 1days');
-        $listInvalidData = SystemCache::getItemFromSortedSetByScore(config('fa_setting.cache.list_valid_sessions'), 0, $validPoint);
+        $listInvalidData = SystemCache::getItemFromSortedSetByScore(config('tf_setting.cache.list_valid_sessions'), 0, $validPoint);
         if (!empty($listInvalidData)) {
-            SystemCache::removeItemFromSortedSetByScore(config('fa_setting.cache.list_valid_sessions'), 0, $validPoint);
-            SystemCache::removeItemsFromHash(config('fa_setting.cache.list_store_session'), $listInvalidData);
+            SystemCache::removeItemFromSortedSetByScore(config('tf_setting.cache.list_valid_sessions'), 0, $validPoint);
+            SystemCache::removeItemsFromHash(config('tf_setting.cache.list_store_session'), $listInvalidData);
         }
-        $shop = SystemCache::getItemFromHash(config('fa_setting.cache.list_store_session'), $sessionId);
+        $shop = SystemCache::getItemFromHash(config('tf_setting.cache.list_store_session'), $sessionId);
         return $shop;
     }
 }
