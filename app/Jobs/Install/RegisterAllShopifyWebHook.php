@@ -114,7 +114,6 @@ class RegisterAllShopifyWebHook implements ShouldQueue
                 'topic' => 'products/delete',
             ],
 
-
             [
                 'address' => config('tf_common.hook_url') . '/api/webhook/collections/create',
                 'topic' => 'collections/create',
@@ -127,15 +126,34 @@ class RegisterAllShopifyWebHook implements ShouldQueue
                 'address' => config('tf_common.hook_url') . '/api/webhook/collections/delete',
                 'topic' => 'collections/delete',
             ],
-
-            // [
-            //     'address' => config('tf_common.hook_url') . '/api/webhook/themes/publish',
-            //     'topic' => 'themes/publish',
-            // ],
-            // [
-            //     'address' => config('tf_common.hook_url') . '/api/webhook/order/create',
-            //     'topic' => 'orders/create',
-            // ]
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/cancelled',
+                'topic' => 'orders/cancelled',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/create',
+                'topic' => 'orders/create',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/delete',
+                'topic' => 'orders/delete',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/edited',
+                'topic' => 'orders/edited',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/fulfilled',
+                'topic' => 'orders/fulfilled',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/paid',
+                'topic' => 'orders/paid',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/orders/updated',
+                'topic' => 'orders/updated',
+            ],
         ];
 
         return $webhooks;
