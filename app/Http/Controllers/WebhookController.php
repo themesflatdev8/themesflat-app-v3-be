@@ -5,23 +5,14 @@ namespace App\Http\Controllers;
 use App\Facade\SystemCache;
 use App\Jobs\CollectionWebhookJob;
 use App\Jobs\DeleteProductsJob;
-use App\Jobs\OrderWebhookJob;
 use App\Jobs\ProductWebhookJob;
 use App\Jobs\ShopUpdateWebhookJob;
-use App\Jobs\UsageChargeOrder;
-use App\Models\BundlesModel;
-use App\Models\LanguageModel;
-use App\Models\LogModel;
-use App\Models\ProductCommenditionsModel;
 use App\Models\ProductModel;
-use App\Models\ProductOptionModel;
-use App\Models\ProductVariantModel;
-use App\Models\StoreModel;
 use App\Models\ShopModel;
+use App\Services\App\OrderService;
 use Exception;
+use Google\Service\AndroidPublisher\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class WebhookController extends Controller
 {
@@ -93,11 +84,10 @@ class WebhookController extends Controller
         try {
             $domain = $request->server('HTTP_X_SHOPIFY_SHOP_DOMAIN');
             $order = $request->all();
+            /** @var \App\Services\App\OrderService $orderService */
+            $orderService = app(OrderService::class);
 
-            dispatch(new OrderWebhookJob(
-                $domain,
-                $order
-            ));
+            $orderService->createOrder($domain, $order);
         } catch (Exception $exception) {
             $this->sentry->captureException($exception);
         }
