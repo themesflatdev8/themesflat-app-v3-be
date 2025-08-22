@@ -27,13 +27,22 @@ SHOPIFY_API_KEY=your_api_key
 SHOPIFY_API_SECRET=your_api_secret
 ```
 
-## 6. Thay đổi URL của App
-- Trong `.env`, chỉnh `APP_URL` thành URL backend của bạn (ví dụ: `https://your-backend.com`).
-
-## 7. Chạy migration
+## 6. Chạy migration 
 ```bash
 php artisan migrate
 ```
+## 7. Tạo url với cloudflare/ngrok( ví dụ với cloudflare và port 3000 - chạy ở terminal chứa file cloudflare.exe)
+```bash
+.\cloudflared.exe tunnel --url http://localhost:3000
+
+```
+
+## 6. Thay đổi URL của App
+- Trong `.env`, chỉnh `APP_URL` thành URL tạo ở trên
+
+## 7. Run project (ví dụ ở đây port 3000)
+`php artisan serve --port=3000`
+
 
 ## 8. Chạy hàng đợi (Queue)
 ```bash
