@@ -64,22 +64,27 @@ class ShopifyApiService
     public function post(string $url, array $data = [], $apiVersion = null)
     {
         $version = config('tf_shopify.api_version');
-        if(!empty($apiVersion)){
+        if (!empty($apiVersion)) {
             $version = $apiVersion;
         }
-        $client = new Client();
-        $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, $version , $url);
-        $response = $client->request(
-            'POST',
-            $uri,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'X-Shopify-Access-Token' => $this->accessToken,
-                ],
-                'body' => json_encode($data),
-            ]
-        );
+        try {
+            $client = new Client();
+            $uri = sprintf("https://%s/admin/api/%s/%s", $this->shopifyDomain, $version, $url);
+            $response = $client->request(
+                'POST',
+                $uri,
+                [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'X-Shopify-Access-Token' => $this->accessToken,
+                    ],
+                    'body' => json_encode($data),
+                ]
+            );
+        } catch (\Exception $exception) {
+            $this->sentry->captureException($exception);
+            return false;
+        }
 
         return json_decode($response->getBody()->getContents());
     }

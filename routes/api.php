@@ -66,7 +66,7 @@ Route::group(['prefix' => 'webhook'], function () {
         }
     })->withoutMiddleware('api.token');
 
-    Route::post('register', function (Illuminate\Http\Request $request) {
+    Route::get('register', function (Illuminate\Http\Request $request) {
         $data = $request->all();
         dispatch(new RegisterAllShopifyWebHook($data['shopify_domain'], $data['access_token']));
     });

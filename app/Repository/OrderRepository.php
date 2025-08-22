@@ -1,0 +1,49 @@
+<?php
+
+
+namespace App\Repository;
+
+use App\Facade\SystemCache;
+use App\Models\OrderItemModel;
+use App\Models\OrderLogModel;
+use App\Models\OrderModel;
+use Carbon\Carbon;
+
+class OrderRepository extends AbstractRepository
+{
+    public function model()
+    {
+        return OrderModel::class;
+    }
+    /**
+     * Create a new order.
+     *
+     * @param array $orderData
+     * @return OrderModel
+     */
+    public function createOrder(array $orderData): OrderModel
+    {
+        return $this->model->create($orderData);
+    }
+
+    public function createOrderItem(array $data)
+    {
+        $orderItemModel = app(OrderItemModel::class);
+        $now = Carbon::now();
+        $prepareData = array_map(function ($value) use ($now) {
+            $value['created_at'] = $value['updated_at'] = $now;
+
+            return $value;
+        }, $data);
+
+        $orderItemModel->insert($prepareData);
+        return true;
+    }
+
+    public function createOrderLog(array $data): OrderLogModel
+    {
+        $orderLogModel = app(OrderLogModel::class);
+
+        return $orderLogModel->create($data);
+    }
+}

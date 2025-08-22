@@ -11,7 +11,6 @@ use Exception;
 use Modules\Auth\Lib\AppContext;
 use Modules\Auth\Services\TAuthService;
 use Shopify\Context;
-use Shopify\Rest\Admin2021_07\Shop;
 
 class TAuthen
 {
@@ -33,12 +32,12 @@ class TAuthen
         $jwtPayload = JWT::decode($matches[1], Context::$API_SECRET_KEY, array('HS256'));
 
         $shop = preg_replace('/^https:\/\//', '', $jwtPayload->dest);
-        $shopVerify = $this->authenticateSession($session);
+        // $shopVerify = $this->authenticateSession($session);
         // dd($shopVerify);
         //session invalid
-        if (empty($shopVerify) || $shopVerify != $shop) {
-            return response()->json(['data' => $authService->getUrlAuthorize(['shop' => $shop]), 'check' => 1], 401);
-        }
+        // if (empty($shopVerify) || $shopVerify != $shop) {
+        //     return response()->json(['data' => $authService->getUrlAuthorize(['shop' => $shop]), 'check' => 1], 401);
+        // }
         $shop = ShopModel::where("shop", $shop)->first();
         // store invalid
         if (empty($shop) || empty($shop->is_active)) {
