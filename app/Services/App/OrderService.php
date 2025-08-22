@@ -80,8 +80,6 @@ class OrderService extends AbstractService
             $this->orderRepository->createOrderItem($dataOrderItem);
             $this->orderRepository->createOrderLog($dataOrderLog);
         } catch (Exception $exception) {
-            info('lỗi');
-            info($exception->getMessage());
             $this->sentry->captureException($exception);
             throw $exception; // Re-throw the exception after logging
         }
