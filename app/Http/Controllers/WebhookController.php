@@ -110,12 +110,11 @@ class WebhookController extends Controller
     {
         try {
             $domain = $request->server('HTTP_X_SHOPIFY_SHOP_DOMAIN');
-            $order = $request->all();
+            $data = $request->all();
             /** @var \App\Services\App\OrderService $orderService */
             $orderService = app(OrderService::class);
-            info(json_encode($order, JSON_PRETTY_PRINT));
 
-            // $orderService->createOrder($domain, $order);
+            $orderService->deleteOrder($data['id']);
         } catch (Exception $exception) {
             $this->sentry->captureException($exception);
         }

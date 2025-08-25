@@ -84,4 +84,23 @@ class OrderService extends AbstractService
             throw $exception; // Re-throw the exception after logging
         }
     }
+
+    public function deleteOrder($orderId)
+    {
+        try {
+            info('Delete order id: ' . $orderId);
+            $this->orderRepository->deleteOrder($orderId);
+            $this->orderRepository->deleteOrderItem($orderId);
+            $dataOrderLog = [
+                'shopify_order_id' => $orderId,
+                'action_type' => 'delete',
+                'log_data' => json_encode(['order_id' => $orderId]),
+            ];
+            $this->orderRepository->createOrderLog($dataOrderLog);
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+            throw $exception; // Re-throw the exception after logging
+        }
+        return true;
+    }
 }
