@@ -4,6 +4,7 @@ namespace Modules\Auth\Services;
 
 
 use App\Facade\SystemCache;
+use App\Models\ApproveDomainModel;
 use App\Models\ShopModel;
 use App\Models\StoreModel;
 use App\Models\StoreTestModel;
@@ -51,6 +52,7 @@ class TAuthService extends AbstractAuthService
                     $isWelcome = true;
                     $shop = ShopModel::where("shop", $data["shop"])->first();
                 } catch (Exception $e) {
+                    info(1);
                     app('sentry')->captureException($e);
                     return ['status' => false, 'message' => 'empty store', 'data' => $this->getUrlAuthorize($data)];
                 }
@@ -61,8 +63,28 @@ class TAuthService extends AbstractAuthService
             $data = $shop->toArray();
 
             $planInfo = app(StoreRepository::class)->getPlan($data);
+            //update aprprove domain
+            $approveData = ApproveDomainModel::where('domain_name', $shop->shop)->first();
+
+            if ($approveData && $approveData->status === 'approved') {
+                $dayUsed = now()->diffInDays($approveData->used_at);
+                $validDays = $approveData->valid_days - $dayUsed;
+
+                $dataUpdate = ['valid_days' => $validDays];
+
+                if ($validDays <= 0) {
+                    $dataUpdate['status'] = 'pending';
+                }
+
+                $approveData->update($dataUpdate);
+
+                // đồng bộ lại object để khỏi phải query thêm lần nữa
+                $approveData->fill($dataUpdate);
+            }
+
             $data = array_merge($data, [
-                'plan_info' => $planInfo,
+                'plan_info'      => $planInfo,
+                'approve_domain' => $approveData?->toArray(),
             ]);
 
 
@@ -104,9 +126,7 @@ class TAuthService extends AbstractAuthService
             }
 
 
-            $data['ti'] = $ti;
             // $data['bl'] = $checkBlacklist;
-            $data['test'] = false;
             // $data['trial_days'] = $trialDays;
             $data['is_welcome'] = $isWelcome;
 

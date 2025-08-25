@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ApproveDomainModel;
 
 class ShopModel extends Model
 {
@@ -35,7 +36,8 @@ class ShopModel extends Model
         'updated_at'
     ];
 
-    protected $casts = [
-        'setup_guide' => 'array'
-    ];
+    public function approveDomain()
+    {
+        return $this->hasOne(ApproveDomainModel::class, 'domain_name', 'shop');
+    }
 }

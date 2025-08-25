@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__ . '/discount.php';
 require __DIR__ . '/comment.php';
+require __DIR__ . '/shop.php';
+
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -93,35 +95,6 @@ Route::group(['prefix' => 'webhook'], function () {
 // });
 
 
-// Route::group([
-//     'prefix' => 'manage-bundles',
-//     'middleware' => ['t.auth']
-// ], function () {
-//     Route::get('/',  [BundleController::class, 'getBundles']);
-//     Route::get('/detail/{id}',  [BundleController::class, 'getBundleDetail']);
-//     Route::get('/list-products',  [BundleController::class, 'listProducts']);
-//     Route::get('/list-collections',  [BundleController::class, 'listCollections']);
-//     Route::post('/edit/{id}',  [BundleController::class, 'editBundleDetail']);
-//     Route::post('/create',  [BundleController::class, 'createBundle']);
-//     Route::post('/delete',  [BundleController::class, 'deleteBundles']);
-//     Route::get('/first-publish',  [BundleController::class, 'getFirstBundlePublish']);
-//     Route::get('/check-discount-limit',  [BundleController::class, 'checkDiscountLimit']);
-
-//     Route::post('/sync-products',  [BundleController::class, 'syncProducts']);
-//     Route::post('/generate-bundles',  [BundleController::class, 'generateBundles']);
-
-//     Route::post('/bulk-publish',  [BundleController::class, 'publish']);
-//     Route::post('/bulk-unpublish',  [BundleController::class, 'unpublish']);
-//     Route::post('/bulk-active-timmer',  [BundleController::class, 'bulkActiveTimmer']);
-//     Route::post('/bulk-deactive-timmer',  [BundleController::class, 'bulkDeactiveTimmer']);
-//     Route::post('/bulk-generate',  [BundleController::class, 'generateBundle']);
-
-
-//     // lấy list recommendation trả về cho FE
-//     Route::post('/generate-ai',  [BundleController::class, 'generateAI']);
-
-//     Route::post('/bulk-generate-default',  [BundleController::class, 'generateBundleDefault']);
-// });
 
 
 // Route::group([
@@ -163,8 +136,8 @@ Route::group(['prefix' => 'webhook'], function () {
 //     Route::post('/reset-default',  [SettingController::class, 'resetDefault']);
 
 
-Route::post('/verify-app-block',  [SettingController::class, 'verifyAppBlock']);
-Route::post('/verify-app-embed',  [SettingController::class, 'verifyAppEmbed']);
+// Route::post('/verify-app-block',  [SettingController::class, 'verifyAppBlock']);
+// Route::post('/verify-app-embed',  [SettingController::class, 'verifyAppEmbed']);
 
 // });
 
