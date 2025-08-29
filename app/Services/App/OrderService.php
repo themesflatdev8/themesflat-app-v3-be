@@ -84,4 +84,22 @@ class OrderService extends AbstractService
             throw $exception; // Re-throw the exception after logging
         }
     }
+
+    public function alsoBoughts($data)
+    {
+        try {
+            $variantIdsRaw = $data['variant_ids'] ?? [];
+            if (!is_array($variantIdsRaw)) {
+                $data['variant_ids'] = array_filter(array_map('intval', explode(',', $variantIdsRaw)));
+            } else {
+                $data['variant_ids'] = array_filter(array_map('intval', $variantIdsRaw));
+            }
+
+            $result = $this->orderRepository->alsoBoughts($data);
+            return $result;
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return [];
+    }
 }
