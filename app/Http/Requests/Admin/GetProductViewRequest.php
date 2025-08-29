@@ -25,7 +25,7 @@ class GetProductViewRequest extends FormRequest
     {
         return [
             'product_id' => 'required|integer',
-            'user_id'    => 'required|integer',
+            'user_id'    => 'required|string',
             'handle'     => 'required|string|max:255',
         ];
     }

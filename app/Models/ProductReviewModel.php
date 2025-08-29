@@ -21,6 +21,7 @@ class ProductReviewModel extends Model
         'product_id',
         'parent_id',
         'review_text',
+        'review_title',
         'rating',
         'is_admin',
         'status',

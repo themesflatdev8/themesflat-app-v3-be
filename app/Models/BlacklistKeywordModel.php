@@ -15,11 +15,7 @@ class BlacklistKeywordModel extends Model
 
     // Các cột có thể gán giá trị hàng loạt (mass assignable)
     protected $fillable = [
-        'shop_domain',
+        'id',
         'keyword',
-        'searched_at',
-        'user_ip',
-        'user_agent',
-        'referer',
     ];
 }

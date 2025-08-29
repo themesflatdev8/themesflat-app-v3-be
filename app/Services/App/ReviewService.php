@@ -60,20 +60,20 @@ class ReviewService extends AbstractService
             return false;
         }
     }
-    public function getReviews(string $domain, int $productId, string $type)
+    public function getReviews(string $domain, $data)
     {
         try {
             // ✅ Query đếm tổng reviews'
             $query = ProductReviewModel::where('domain_name', $domain)
-                ->where('product_id', $productId)
+                ->where('product_id', $data['product_id'])
                 ->where('status', 'approved')
-                ->where('type', $type);
+                ->where('type', $data['type']);
 
             $total = (clone $query)
                 ->count();
 
             // ✅ Nếu type = product → thêm average_rating
-            if ($type === 'product') {
+            if ($data['type'] === 'product') {
                 $averageRating = (clone $query)
                     ->avg('rating');
             }
@@ -85,6 +85,7 @@ class ReviewService extends AbstractService
                 'average_rating' => !empty($averageRating) ? round((float) $averageRating, 2) : null
             ];
         } catch (Exception $e) {
+            dd($e);
             $this->sentry->captureException($e);
         }
         return [
@@ -156,8 +157,15 @@ class ReviewService extends AbstractService
     public function getAllReviews(string $domain, int $productId, string $type = 'product'): array
     {
         try {
-            $rows = DB::table('product_reviews')
-                ->select('id', 'parent_id', 'rating', 'review_title', 'review_text', 'user_name', 'created_at')
+            $rows = ProductReviewModel::select(
+                'id',
+                'parent_id',
+                'rating',
+                'review_title',
+                'review_text',
+                'user_name',
+                'created_at'
+            )
                 ->where('domain_name', $domain)
                 ->where('product_id', $productId)
                 ->where('status', 'approved')
@@ -189,6 +197,7 @@ class ReviewService extends AbstractService
                 'reviews' => $result
             ];
         } catch (Exception $exception) {
+            dd($exception);
             $this->sentry->captureException($exception);
         }
         return [
@@ -294,20 +303,20 @@ class ReviewService extends AbstractService
         ];
     }
 
-    public function countComment(string $domain, int $productId, string $type = 'article'): array
+    public function countComment(string $domain, $data): array
     {
         try {
 
             $query = DB::table('product_reviews')
                 ->where('domain_name', $domain)
-                ->where('product_id', $productId)
+                ->where('product_id', $data['product_id'])
                 ->where('status', 'approved')
-                ->where('type', $type);
+                ->where('type', $data['type']);
 
             $total = (clone $query)->count();
 
             // Nếu type = product thì tính thêm điểm trung bình
-            if ($type === 'product') {
+            if ($data['type'] === 'product') {
                 $averageRating = (clone $query)->avg('rating');
 
                 return [

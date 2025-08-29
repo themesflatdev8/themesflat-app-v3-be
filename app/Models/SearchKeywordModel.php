@@ -8,17 +8,32 @@ use Illuminate\Database\Eloquent\Model;
 class SearchKeywordModel extends Model
 {
     use HasFactory;
+    // tên bảng (nếu khác với chuẩn Laravel thì phải khai báo)
     protected $table = 'search_keywords';
 
+    // primary key
+    protected $primaryKey = 'id';
+
+    // tắt auto increment nếu không phải
+    public $incrementing = true;
+
+    // kiểu key
+    protected $keyType = 'int';
+
+    // timestamps: vì bảng không có created_at / updated_at
+
+    // cho phép fillable
     protected $fillable = [
         'shop_domain',
         'keyword',
-        'date',
-        'count',
+        'searched_at',
+        'user_ip',
+        'user_agent',
+        'referer',
     ];
 
-    // Nếu bạn muốn Laravel tự động cast `date` thành Carbon
+    // Nếu muốn cast searched_at sang Carbon datetime
     protected $casts = [
-        'date' => 'date',
+        'searched_at' => 'datetime',
     ];
 }

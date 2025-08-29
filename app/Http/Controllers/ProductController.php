@@ -23,8 +23,7 @@ class ProductController extends Controller
         // Lấy param từ request
         try {
             $userId = $request->input('user_id');
-            $shopInfo = $request->input('shopInfo');
-            $domain = $shopInfo->shop;
+            $domain = $request->input('shopInfo')['shop'];
 
             // Query DB (giả sử bảng trong Laravel migration là `shopify_recent_views`)
             $result = $this->productRepository->shopifyRecentViews($userId, $domain);
@@ -33,6 +32,7 @@ class ProductController extends Controller
                 'data' => $result
             ]);
         } catch (\Exception $e) {
+            dd($e);
             $this->sentry->captureException($e);
         }
         return response()->json([
@@ -43,23 +43,23 @@ class ProductController extends Controller
     public function  getProductViews(GetProductViewRequest $request)
     {
         try {
-            $productId = $request->input('product_id');;
-            $shopInfo = $request->input('shopInfo');
-            $domain = $shopInfo->shop;
+            $domain = $request->input('shopInfo')['shop'];
             // 3. Lấy thêm thông tin trình duyệt và nguồn
             $data = [
                 'user_agent' => $request->header('User-Agent', ''),
                 'referer' => $request->header('Referer', ''),
-                'product_id' =>  $request->get('user_id'),
+                'user_id' =>  $request->get('user_id'),
                 'handle' =>  $request->get('handle'),
+                'product_id' => $request->input('product_id')
             ];
 
-            $result = $this->productRepository->getProductViews($productId, $domain, $data);
+            $result = $this->productRepository->getProductViews($domain, $data);
             return response()->json([
                 'status' => 'success',
                 'data' => $result
             ]);
         } catch (\Exception $e) {
+            dd($e);
             $this->sentry->captureException($e);
         }
         return response()->json([

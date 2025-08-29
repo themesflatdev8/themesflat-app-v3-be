@@ -20,14 +20,16 @@ class SoldRecordController extends Controller
 
     public function addSold32h(AddSoldRecordRequest $request)
     {
-        $domain = $request->input('shopInfo')->shop;
+                $domain = $request->input('shopInfo')['shop'];
+
         $result = $this->soldRecordService->addSoldRecord($domain, $request->validated());
 
         return response()->json($result);
     }
     public function getSoldRecord(GetSoldRequest $request)
     {
-        $domain = $request->input('shopInfo')->shop;
+                $domain = $request->input('shopInfo')['shop'];
+
         $result = $this->soldRecordService->getSoldRecord($domain, $request->validated());
 
         return response()->json($result);
@@ -35,7 +37,8 @@ class SoldRecordController extends Controller
 
     public function getBestSeller(BestSellerRequest $request)
     {
-        $domain = $request->input('shopInfo')->shop;
+                $domain = $request->input('shopInfo')['shop'];
+
         $result = $this->soldRecordService->getBestSeller($domain, $request->validated());
 
         return response()->json($result);

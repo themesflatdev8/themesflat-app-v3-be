@@ -24,7 +24,8 @@ class SearchController extends Controller
             'referer'     => $request->header('Referer'),
 
         ];
-        $domain = $request->input('shopInfo')->shop;
+                $domain = $request->input('shopInfo')['shop'];
+
         $this->searchService->search($domain, $data);
 
         return response()->json([
@@ -35,7 +36,8 @@ class SearchController extends Controller
     public function topKeywords(Request $request)
     {
         $range  = intval($request->input('range', 1));
-        $domain = $request->input('shopInfo')->shop;
+                $domain = $request->input('shopInfo')['shop'];
+
         $result = $this->searchService->topKeywords($domain, $range);
         return response()->json([
             'status' => 'success',

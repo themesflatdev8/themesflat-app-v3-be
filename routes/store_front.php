@@ -15,7 +15,7 @@ Route::middleware('storefront')->group(function () {
     Route::get('/also-boughts', [OrderController::class, 'alsoBoughts']);
     Route::get('/count-shipping', [DiscountsController::class, 'countShipping']);
     Route::get('/recent', [ProductController::class, 'getRecentViews']);
-    Route::post('/product-views', [ProductController::class, 'getProductViews']);
+    Route::get('/product-views', [ProductController::class, 'getProductViews']);
     Route::post('/product-top-view', [ProductController::class, 'productTopView']);
 
     Route::post('/search', [SearchController::class, 'search']);
@@ -32,6 +32,6 @@ Route::middleware('storefront')->group(function () {
     Route::get('/count-comments', [ReviewController::class, 'countComment']);
 
     Route::post('/add-sol32h', [SoldRecordController::class, 'addSold32h']);
-    Route::post('/get-sold', [SoldRecordController::class, 'getSoldRecord']);
-    Route::post('/bestseller', [SoldRecordController::class, 'getBestSeller']);
+    Route::get('/sold-32h', [SoldRecordController::class, 'getSoldRecord']);
+    Route::get('/bestseller', [SoldRecordController::class, 'getBestSeller']);
 });

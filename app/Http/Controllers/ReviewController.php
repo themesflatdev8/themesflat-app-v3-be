@@ -28,7 +28,8 @@ class ReviewController extends Controller
     public function addReview(AddReviewRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
+
         $result = $this->reviewService->addReview($domain, $data);
         if ($result) {
             return response()->json([
@@ -46,7 +47,8 @@ class ReviewController extends Controller
     public function editReview(EditReviewRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
+
 
         $result = $this->reviewService->editReview($domain, $data);
         if ($result) {
@@ -65,16 +67,17 @@ class ReviewController extends Controller
     public function getReviews(GetReviewRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
-
-        $result = $this->reviewService->getReviews($domain, $data['product_id'], $data['type']);
+        $domain = $request->input('shopInfo')['shop'];
+        $data['type'] = $data['type'] ?? 'product';
+        $result = $this->reviewService->getReviews($domain, $data);
         return response()->json($result);
     }
 
     public function getReviewSummary(GetReviewSummaryRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
+        $data['type'] = $data['type'] ?? 'product';
 
         $result = $this->reviewService->getReviewSummary($domain, $data['product_id'], $data['type']);
         return response()->json($result);
@@ -86,7 +89,8 @@ class ReviewController extends Controller
     public function submitReview(SubmitReviewRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
+        $data['type'] = $data['type'] ?? 'product';
 
         $result = $this->reviewService->submitReview($domain, $data);
         if ($result) {
@@ -104,8 +108,9 @@ class ReviewController extends Controller
 
     public function getAllReviews(GetAllReviewRequest $request)
     {
-        $data = $request->validate();
-        $domain = $request->input('shopInfo')->shop;
+        $data = $request->all();
+        $domain = $request->input('shopInfo')['shop'];
+        $data['type'] = $data['type'] ?? 'product';
 
         $result = $this->reviewService->getAllReviews($domain, $data['product_id'], $data['type'] ?? 'product');
         return response()->json($result);
@@ -114,7 +119,7 @@ class ReviewController extends Controller
     public function getComments(GetCommentsRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
 
         $result = $this->reviewService->getComments($domain, $data);
         return response()->json($result);
@@ -122,7 +127,8 @@ class ReviewController extends Controller
     public function updateComment(UpdateCommentRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
+
 
         $result = $this->reviewService->updateComment($domain, $data);
         return response()->json($result);
@@ -131,7 +137,8 @@ class ReviewController extends Controller
     public function countComment(CountCommentRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')->shop;
+        $domain = $request->input('shopInfo')['shop'];
+
 
         $result = $this->reviewService->countComment($domain, $data);
         return response()->json($result);

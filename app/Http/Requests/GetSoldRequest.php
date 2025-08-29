@@ -13,7 +13,7 @@ class GetSoldRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,7 +25,7 @@ class GetSoldRequest extends FormRequest
     {
         return [
             'product_id' => 'required|integer',
-            'hours'      => 'required|integer|min:0',
+            'hours'      => 'nullable|integer|min:0',
         ];
     }
 }

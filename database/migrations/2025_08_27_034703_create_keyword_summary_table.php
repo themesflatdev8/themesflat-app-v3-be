@@ -14,7 +14,18 @@ return new class extends Migration
     public function up()
     {
         Schema::create('keyword_summary', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
+            $table->string('shop_domain', 255);
+            $table->string('keyword', 255);
+            $table->date('date');
+            $table->integer('count')->default(1);
+
+            // unique key
+            $table->unique(['shop_domain', 'keyword', 'date'], 'uniq_summary');
+
+            // index
+            $table->index(['keyword', 'date'], 'idx_keyword_date');
+
             $table->timestamps();
         });
     }

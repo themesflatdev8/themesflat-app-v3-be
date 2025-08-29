@@ -19,9 +19,11 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('user_id', 255);                 // ID người dùng
             $table->string('domain_name', 255);             // Tên miền shop
+            $table->string('user_name', 255);             // Tên miền shop
             $table->bigInteger('product_id');               // ID sản phẩm
             $table->bigInteger('parent_id')->nullable();    // Review cha (nếu là reply)
             $table->text('review_text');                    // Nội dung đánh giá hoặc phản hồi
+            $table->string('review_title', 255);                    // Nội dung đánh giá hoặc phản hồi
             $table->integer('rating')->nullable();          // Rating (chỉ review gốc)
             $table->boolean('is_admin')->default(false);    // Có phải admin không
 

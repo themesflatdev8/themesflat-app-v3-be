@@ -14,16 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('blacklist_keywords', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('shop_domain', 255);
-            $table->string('keyword', 255);
-            $table->dateTime('searched_at');
-            $table->string('user_ip', 100)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->text('referer')->nullable();
-
-            $table->index(['keyword', 'searched_at'], 'idx_keyword_searched_at');
-            $table->index(['shop_domain', 'keyword'], 'idx_shop_keyword');
+            $table->increments('id');
+            $table->string('keyword', 255)->unique();
             $table->timestamps();
         });
     }

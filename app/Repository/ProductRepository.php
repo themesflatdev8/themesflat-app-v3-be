@@ -35,12 +35,12 @@ class ProductRepository extends AbstractRepository
         return $result;
     }
 
-    public function getProductViews($productId, $domain, $data)
+    public function getProductViews($domain, $data)
     {
         $now = Carbon::now();
         ShopifyRecentViewModel::updateOrCreate(
             [
-                'product_id'  => $productId,
+                'product_id'  => $data['product_id'],
                 'user_id'     => $data['user_id'],
                 'domain_name' => $domain,
             ],
@@ -52,7 +52,7 @@ class ProductRepository extends AbstractRepository
 
         // 6. Lưu bảng view logs (insert mới)
         ViewLogModel::create([
-            'product_id'  => $productId,
+            'product_id'  => $data['product_id'],
             'handle'      => $data['handle'],
             'user_id'     => $data['user_id'],
             'domain_name' => $domain,
@@ -61,7 +61,7 @@ class ProductRepository extends AbstractRepository
             'referer'     => $data['referer'],
         ]);
         // 7. Đếm tổng lượt xem theo domain
-        $count = ViewLogModel::where('product_id', $productId)
+        $count = ViewLogModel::where('product_id', $data['product_id'])
             ->where('domain_name', $domain)
             ->count();
         return $count;
