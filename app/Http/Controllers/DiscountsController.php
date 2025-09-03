@@ -101,4 +101,52 @@ class DiscountsController extends Controller
             'data' => $result
         ]);
     }
+
+    public function getFreeShip(Request $request)
+    {
+        try {
+            $domain = $request->shopInfo['shop'];
+            $result = $this->discountRepository->getFreeShip($domain);
+
+            if (empty($result)) {
+                return [
+                    'status' => 'success',
+                    'data' => [],
+                    'note' => 'No active free shipping discount codes found.',
+                ];
+            }
+
+            $parsed = collect($result)->map(function ($item) {
+                $minimum_quantity = $item->minimum_quantity;
+                $minimum_requirement = $item->minimum_requirement;
+
+                $minimum_value = null;
+                if (!is_null($minimum_quantity)) {
+                    $minimum_value = intval($minimum_quantity);
+                } elseif (!is_null($minimum_requirement)) {
+                    $minimum_value = floatval($minimum_requirement);
+                }
+
+                return [
+                    'discount_value'      => floatval($item->discount_value),
+                    'minimum_requirement' => $minimum_requirement ?? null,
+                    'minimum_quantity'    => $minimum_quantity ?? null,
+                    'minimum_value'       => $minimum_value,
+                    'codes'               => $item->codes,
+                ];
+            })->values()->toArray();
+
+
+            return response([
+                'status' => 'success',
+                'data' => $parsed
+            ]);
+        } catch (\Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return response([
+            'status' => 'success',
+            'data' => []
+        ]);
+    }
 }

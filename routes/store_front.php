@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('storefront')->group(function () {
     Route::get('/also-boughts', [OrderController::class, 'alsoBoughts']);
+    Route::get('/freeship', [DiscountsController::class, 'getFreeShip']);
     Route::get('/count-shipping', [DiscountsController::class, 'countShipping']);
     Route::get('/recent', [ProductController::class, 'getRecentViews']);
     Route::get('/product-views', [ProductController::class, 'getProductViews']);
