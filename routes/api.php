@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PricingController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\WebhookController;
 use App\Jobs\Install\RegisterAllShopifyWebHook;
@@ -21,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__ . '/discount.php';
 require __DIR__ . '/comment.php';
-
+require __DIR__ . '/store_front.php';
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

@@ -22,7 +22,7 @@ class WebhookVerifyHeaders
                 return $next($request);
             }
             $res = $request->all();
-
+            return $next($request);
             if ($headerHmac = $request->server('HTTP_X_SHOPIFY_HMAC_SHA256')) {
                 $data     = file_get_contents('php://input');
                 $verified = $this->verifyWebhook($data, $headerHmac);

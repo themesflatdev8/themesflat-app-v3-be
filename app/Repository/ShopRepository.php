@@ -8,7 +8,7 @@ use App\Models\ShopModel;
 use App\Models\StoreModel;
 use Illuminate\Support\Facades\Cache;
 
-class StoreRepository extends AbstractRepository
+class ShopRepository extends AbstractRepository
 {
     /**
      * @return string
