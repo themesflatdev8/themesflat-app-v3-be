@@ -18,6 +18,7 @@ class ProductReviewModel extends Model
     protected $fillable = [
         'user_id',
         'domain_name',
+        'user_name',
         'product_id',
         'parent_id',
         'review_text',
@@ -26,9 +27,7 @@ class ProductReviewModel extends Model
         'is_admin',
         'status',
         'type',
-        'created_at',
     ];
-
     /**
      * Scope tìm kiếm theo keyword (ILIKE + trigram index trong PostgreSQL).
      */

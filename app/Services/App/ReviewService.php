@@ -136,15 +136,14 @@ class ReviewService extends AbstractService
     {
         try {
             $result = ProductReviewModel::create(([
-                'user_id'      => $data['user_id'],
+                'user_id'      => !empty($data['user_id']) ? $data['user_id'] : $data['user_name'],
                 'domain_name'  => $domain,
                 'product_id'   => $data['product_id'],
                 'review_title' => $data['review_title'],
                 'review_text'  => $data['review_text'],
                 'rating'       => $data['rating'] ?? null,
-                'user_name' => $data['user_name'],
-                'user_email' => $data['user_email'],
-                'status'       => 'pending',
+                'user_name'    => $data['user_name'],
+                'status'       => 'approved',
                 'type'         => $data['type']
             ]));
             return (bool) $result;
@@ -175,20 +174,19 @@ class ReviewService extends AbstractService
                 ->toArray();
 
             // Map thành ID => row
-            $by_id = [];
+            $byId = [];
             foreach ($rows as $row) {
-                $row = (array) $row; // convert stdClass -> array
                 $row['replies'] = [];
-                $by_id[$row['id']] = $row;
+                $byId[$row['id']] = $row;
             }
 
             // Build tree (gắn reply vào parent)
             $result = [];
-            foreach ($by_id as $id => &$row) {
-                if (!empty($row['parent_id']) && isset($by_id[$row['parent_id']])) {
-                    $by_id[$row['parent_id']]['replies'][] = &$row;
+            foreach ($byId as $id => &$row) {
+                if (!empty($row['parent_id']) && isset($byId[$row['parent_id']])) {
+                    $byId[$row['parent_id']]['replies'][] = &$row;
                 } else {
-                    $tree[] = &$row;
+                    $result[] = &$row;
                 }
             }
 

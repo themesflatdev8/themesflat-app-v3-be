@@ -68,8 +68,8 @@ class DiscountRepository extends AbstractRepository
         return $this->model->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes')
             ->where('domain_name', $domainName)
             ->where('type', 'DiscountCodeFreeShipping')
-            ->where('start_at', '<=', $now)
-            ->where('end_at', '>=', $now)
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
             ->get();
     }
 }
