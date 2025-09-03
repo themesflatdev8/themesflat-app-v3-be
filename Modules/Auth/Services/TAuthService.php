@@ -7,6 +7,7 @@ use App\Facade\SystemCache;
 use App\Models\ShopModel;
 use App\Models\StoreModel;
 use App\Models\StoreTestModel;
+use App\Repository\ShopRepository;
 use App\Repository\StoreRepository;
 use Exception;
 use Modules\Auth\Events\InstallCompleteEvent;
@@ -60,7 +61,8 @@ class TAuthService extends AbstractAuthService
             SystemCache::addItemToHash(config('tf_setting.cache.store_detail_key'), $shop->shop, $shop->toArray());
             $data = $shop->toArray();
 
-            $planInfo = app(StoreRepository::class)->getPlan($data);
+
+            $planInfo = app(ShopRepository::class)->getPlan($data);
             $data = array_merge($data, [
                 'plan_info' => $planInfo,
             ]);
