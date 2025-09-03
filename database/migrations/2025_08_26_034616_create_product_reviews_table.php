@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('status', 20)->default('approved'); // pending/approved/rejected
             $table->string('type', 20)->default('product');    // product/article
 
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
 
             // Indexes thường
             $table->index('product_id');

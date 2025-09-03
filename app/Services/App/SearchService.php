@@ -68,7 +68,6 @@ class SearchService extends AbstractService
                 ->limit(10)
                 ->pluck('keyword')
                 ->toArray();
-
             if (empty($result)) {
                 $results = KeywordSummaryModel::query()
                     ->select('keyword')
@@ -78,6 +77,7 @@ class SearchService extends AbstractService
                     ->pluck('keyword')
                     ->toArray();
             }
+            return $result;
         } catch (Exception $e) {
             $this->sentry->captureException($e);
         }

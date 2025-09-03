@@ -70,7 +70,7 @@ class ProductController extends Controller
     public function productTopView(Request $request)
     {
         /** @var DiscountRepository $discountRepository */
-        $domainName = $request->input('shopInfo')->shop;
+        $domainName = $request->input('shopInfo')['shop'];
         $discountRepository = app(DiscountRepository::class);
         $result = $discountRepository->getFreeShippingDiscounts($domainName);
         if (!empty($result)) {
