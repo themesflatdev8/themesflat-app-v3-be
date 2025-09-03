@@ -72,4 +72,17 @@ class DiscountRepository extends AbstractRepository
             ->where('ends_at', '>=', $now)
             ->get();
     }
+
+    public function getFreeShip($domain)
+    {
+        $now = Carbon::now();
+        return DB::table('domain_discounts')
+            ->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes')
+            ->where('domain_name', $domain)
+            ->where('type', 'DiscountCodeFreeShipping')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->get()
+            ->toArray();
+    }
 }
