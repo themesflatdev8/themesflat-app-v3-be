@@ -88,7 +88,6 @@ class ReviewService extends AbstractService
                 'average_rating' => !empty($averageRating) ? round((float) $averageRating, 2) : null
             ];
         } catch (Exception $e) {
-            dd($e);
             $this->sentry->captureException($e);
         }
         return [
@@ -173,8 +172,8 @@ class ReviewService extends AbstractService
                 ->where('status', 'approved')
                 ->where('type', $type)
                 ->orderBy('created_at', 'asc')
-                ->get()
-                ->toArray();
+                ->get();
+            $rows = $rows ? $rows->toArray() : [];
 
             // Map thành ID => row
             $byId = [];
@@ -198,7 +197,6 @@ class ReviewService extends AbstractService
                 'reviews' => $result
             ];
         } catch (Exception $exception) {
-            dd($exception);
             $this->sentry->captureException($exception);
         }
         return [

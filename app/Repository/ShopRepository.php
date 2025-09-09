@@ -40,8 +40,8 @@ class ShopRepository extends AbstractRepository
     public function detailByShopifyDomain(string $domain)
     {
         $shopInfo = ShopModel::where("shop", $domain)
-            ->first()
-            ->toArray();
+            ->first();
+        $shopInfo = $shopInfo ? $shopInfo->toArray() : [];
 
         return $shopInfo;
     }
