@@ -10,21 +10,22 @@ use App\Jobs\Sync\SyncCollectionJob;
 use App\Jobs\Sync\SyncShopifyProductsJobV2;
 use App\Models\ApproveDomainModel;
 use App\Models\SettingsModel;
-use App\Repository\StoreRepository;
+use App\Models\ShopModel;
+use App\Repository\ShopRepository;
 use App\Services\Shopify\ShopifyApiService;
 
 class InstallAppListener
 {
     protected $shopifyApiService;
-    protected $storeRepository;
     protected $settingModel;
+    protected $shopRepository;
 
     public function __construct(
         ShopifyApiService $shopifyApiService,
-        StoreRepository $storeRepository,
+        ShopRepository $shopRepository
     ) {
         $this->shopifyApiService = $shopifyApiService;
-        $this->storeRepository = $storeRepository;
+        $this->shopRepository = $shopRepository;
     }
 
 
@@ -109,9 +110,9 @@ class InstallAppListener
         ];
 
         if ($userType == 'new_install') {
-            $save = $this->storeRepository->create($dataSave);
+            $save = ShopModel::create($dataSave);
         } else {
-            $save = $this->storeRepository->where('shop', $shopifyDomain)->update($dataSave);
+            $save = ShopModel::where('shop', $shopifyDomain)->update($dataSave);
         }
 
         return $save;

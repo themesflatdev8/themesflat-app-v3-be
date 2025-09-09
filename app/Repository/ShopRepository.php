@@ -8,7 +8,7 @@ use App\Models\ShopModel;
 use App\Models\StoreModel;
 use Illuminate\Support\Facades\Cache;
 
-class StoreRepository extends AbstractRepository
+class ShopRepository extends AbstractRepository
 {
     /**
      * @return string
@@ -40,8 +40,8 @@ class StoreRepository extends AbstractRepository
     public function detailByShopifyDomain(string $domain)
     {
         $shopInfo = ShopModel::where("shop", $domain)
-            ->first()
-            ->toArray();
+            ->first();
+        $shopInfo = $shopInfo ? $shopInfo->toArray() : [];
 
         return $shopInfo;
     }

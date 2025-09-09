@@ -3,7 +3,7 @@
 
 namespace App\Repository;
 
-use App\Facade\SystemCache;
+use Illuminate\Support\Facades\DB;
 use App\Models\OrderItemModel;
 use App\Models\OrderLogModel;
 use App\Models\OrderModel;
@@ -56,5 +56,58 @@ class OrderRepository extends AbstractRepository
     {
         $orderItemModel = app(OrderItemModel::class);
         return $orderItemModel->where('order_id', $id)->delete();
+    }
+
+    public function alsoBoughts($data)
+    {
+        $shopDomain = $data['shop_domain'];
+        $variantIds = $data['variant_ids'];
+        $query = DB::table('domain_order_items')
+            ->select(
+                'variant_id',
+                'title',
+                'variant_title',
+                'sku',
+                'vendor',
+                'product_type',
+                'handle',
+                'image_url',
+                'price',
+                'tags',
+                DB::raw('SUM(quantity) AS total_sold')
+            )
+            ->where('shop_domain', $shopDomain)
+            ->whereIn('order_id', function ($q) use ($shopDomain, $variantIds) {
+                $q->select('order_id')
+                    ->distinct()
+                    ->from('domain_order_items')
+                    ->where('shop_domain', $shopDomain);
+
+                if (!empty($variantIds)) {
+                    $q->whereIn('variant_id', $variantIds);
+                }
+            });
+
+        if (!empty($variantIds)) {
+            $query->whereNotIn('variant_id', $variantIds);
+        }
+
+        $results = $query
+            ->groupBy(
+                'variant_id',
+                'title',
+                'variant_title',
+                'sku',
+                'vendor',
+                'product_type',
+                'handle',
+                'image_url',
+                'price',
+                'tags'
+            )
+            ->orderByDesc('total_sold')
+            ->limit(15)
+            ->get();
+        return $results;
     }
 }

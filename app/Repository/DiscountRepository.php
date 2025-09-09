@@ -5,7 +5,8 @@ namespace App\Repository;
 
 use App\Facade\SystemCache;
 use App\Models\DiscountModel;
-use App\Models\ShopModel;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class DiscountRepository extends AbstractRepository
@@ -60,5 +61,29 @@ class DiscountRepository extends AbstractRepository
         $discounts = $query->paginate($limit);
 
         return $discounts;
+    }
+    public function getFreeShippingDiscounts($domainName)
+    {
+        $now = Carbon::now();
+        return $this->model->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes')
+            ->where('domain_name', $domainName)
+            ->where('type', 'DiscountCodeFreeShipping')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->get();
+    }
+
+    public function getFreeShip($domain)
+    {
+        $now = Carbon::now();
+        $result = DB::table('domain_discounts')
+            ->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes')
+            ->where('domain_name', $domain)
+            ->where('type', 'DiscountCodeFreeShipping')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->get();
+        $result = $result ? $result->toArray() : [];
+        return $result;
     }
 }

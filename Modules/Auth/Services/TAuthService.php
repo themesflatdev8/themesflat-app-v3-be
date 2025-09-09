@@ -8,6 +8,7 @@ use App\Models\ApproveDomainModel;
 use App\Models\ShopModel;
 use App\Models\StoreModel;
 use App\Models\StoreTestModel;
+use App\Repository\ShopRepository;
 use App\Repository\StoreRepository;
 use Exception;
 use Modules\Auth\Events\InstallCompleteEvent;
@@ -62,7 +63,7 @@ class TAuthService extends AbstractAuthService
             SystemCache::addItemToHash(config('tf_setting.cache.store_detail_key'), $shop->shop, $shop->toArray());
             $data = $shop->toArray();
 
-            $planInfo = app(StoreRepository::class)->getPlan($data);
+            // $planInfo = app(StoreRepository::class)->getPlan($data);
             //update aprprove domain
             $approveData = ApproveDomainModel::where('domain_name', $shop->shop)->first();
 
@@ -83,7 +84,7 @@ class TAuthService extends AbstractAuthService
             }
 
             $data = array_merge($data, [
-                'plan_info'      => $planInfo,
+                'plan_info'      => [],
                 'approve_domain' => $approveData?->toArray(),
             ]);
 
