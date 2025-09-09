@@ -21,9 +21,9 @@ class EventServiceProvider extends ServiceProvider
         'Modules\Auth\Events\InstallCompleteEvent' => [
             'App\Listeners\InstallAppListener',
         ],
-        'Modules\Auth\Events\UpdateVersionAppEvent' => [
-            'App\Listeners\UpdateVersionAppListener',
-        ],
+        // 'Modules\Auth\Events\UpdateVersionAppEvent' => [
+        //     'App\Listeners\UpdateVersionAppListener',
+        // ],
     ];
 
     /**
