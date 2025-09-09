@@ -2,13 +2,10 @@
 
 namespace App\Services\App;
 
-use App\Models\ProductReviewModel;
 use App\Models\SoldRecordModel;
 use Illuminate\Support\Facades\DB;
 use App\Services\AbstractService;
 use Exception;
-use Google\Service\AdExchangeBuyerII\Product;
-use Google\Service\Merchant\ProductReview;
 
 class SoldRecordService extends AbstractService
 {
