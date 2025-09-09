@@ -10,10 +10,8 @@ return [
     'app_key' => env('APP_KEY_ROOT'),
     'app_url' => env('APP_URL'),
     'hook_url' => env('APP_URL'),
-    'trial_days' => 7,
+    'trial_days' => 30,
     'embedded' => [
         'name' => ENV('EMBEDDED_APP_NAME')
     ],
-    'ignore_variant' => "Default Title",
-    'ignore_option' => "Title"
 ];

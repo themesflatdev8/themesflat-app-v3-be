@@ -3,7 +3,7 @@
 
 namespace App\Repository;
 
-use App\Facade\SystemCache;
+use Illuminate\Support\Facades\DB;
 use App\Models\OrderItemModel;
 use App\Models\OrderLogModel;
 use App\Models\OrderModel;
@@ -26,6 +26,11 @@ class OrderRepository extends AbstractRepository
         return $this->model->create($orderData);
     }
 
+    public function deleteOrder($id)
+    {
+        return $this->model->where('shopify_order_id', $id)->delete();
+    }
+
     public function createOrderItem(array $data)
     {
         $orderItemModel = app(OrderItemModel::class);
@@ -45,6 +50,12 @@ class OrderRepository extends AbstractRepository
         $orderLogModel = app(OrderLogModel::class);
 
         return $orderLogModel->create($data);
+    }
+
+    public function deleteOrderItem($id)
+    {
+        $orderItemModel = app(OrderItemModel::class);
+        return $orderItemModel->where('order_id', $id)->delete();
     }
 
     public function alsoBoughts($data)

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Facade\SystemCache;
 use App\Jobs\CollectionWebhookJob;
 use App\Jobs\DeleteProductsJob;
 use App\Jobs\ProductWebhookJob;
 use App\Jobs\ShopUpdateWebhookJob;
+use App\Models\ApproveDomainModel;
 use App\Models\ProductModel;
 use App\Models\ShopModel;
 use App\Services\App\OrderService;
@@ -41,9 +43,19 @@ class WebhookController extends Controller
                     // 'trial_on' => null,
                     'cancelled_on' => date('Y-m-d H:i:s', time())
                 ]);
+
+                $approvedDomain = ApproveDomainModel::where('domain_name', $domain)->first();
+                if (!empty($approvedDomain)) {
+                    $installAt = !empty($shop->installed_at) ? Carbon::parse($shop->installed_at) : Carbon::now();
+                    $daysUsed = $installAt->diffInDays(Carbon::now());
+                    $approvedDomain->update([
+                        'status' => 'deleted',
+                        'valid_days' => config('tf_common.trial_days') - $daysUsed,
+                    ]);
+                }
             }
 
-            SystemCache::remove('getBundleStorefront_' . $shop->shop);
+
 
             // dispatch(new DeleteProductsJob($shop->shop_id));
         } catch (Exception $exception) {
@@ -88,6 +100,21 @@ class WebhookController extends Controller
             $orderService = app(OrderService::class);
 
             $orderService->createOrder($domain, $order);
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return response()->json(['status' => 'success'], 200);
+    }
+
+    public function orderDelete(Request $request)
+    {
+        try {
+            $domain = $request->server('HTTP_X_SHOPIFY_SHOP_DOMAIN');
+            $data = $request->all();
+            /** @var \App\Services\App\OrderService $orderService */
+            $orderService = app(OrderService::class);
+
+            $orderService->deleteOrder($data['id']);
         } catch (Exception $exception) {
             $this->sentry->captureException($exception);
         }

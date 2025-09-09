@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\App\CommentService;
 use Dom\Comment;
 use Illuminate\Http\Request;
 

@@ -8,6 +8,7 @@ use App\Jobs\CreateBundleSearchJob;
 use App\Jobs\Install\RegisterAllShopifyWebHook;
 use App\Jobs\Sync\SyncCollectionJob;
 use App\Jobs\Sync\SyncShopifyProductsJobV2;
+use App\Models\ApproveDomainModel;
 use App\Models\SettingsModel;
 use App\Models\ShopModel;
 use App\Repository\ShopRepository;
@@ -21,7 +22,6 @@ class InstallAppListener
 
     public function __construct(
         ShopifyApiService $shopifyApiService,
-        SettingsModel $settingModel,
         ShopRepository $shopRepository
     ) {
         $this->shopifyApiService = $shopifyApiService;
@@ -40,6 +40,7 @@ class InstallAppListener
             $storeDataApi = $this->getShopInfoFromShopify($data['shopify_domain'], $data['access_token']);
             if (!empty($storeDataApi)) {
                 $this->saveStoreInfo($storeDataApi, $data['shopify_domain'], $data['access_token'], $data['userType']);
+                $this->saveApprovedDomain($data['shopify_domain'], $data['email']);
                 // dispatch(new SyncShopifyProductsJobV2($storeDataApi->id, $data['shopify_domain'], $data['access_token']));
                 // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'custom_collections'));
                 // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'smart_collections'));
@@ -61,6 +62,24 @@ class InstallAppListener
         } catch (\Exception $e) {
             app('sentry')->captureException($e);
         }
+    }
+
+    private function saveApprovedDomain($shopifyDomain, $email)
+    {
+        try {
+            $dataSave = [
+                'domain_name' => $shopifyDomain,
+                'email_domain' => $email,
+                'valid_days' => 30,
+                'status' => 'approved',
+                'created_active' => now(),
+            ];
+            $result =  ApproveDomainModel::updateOrCreate(['domain_name' => $shopifyDomain], $dataSave);
+        } catch (\Exception $e) {
+            info(($e));
+            app('sentry')->captureException($e);
+        }
+        return true;
     }
 
     private function getShopInfoFromShopify($shopifyDomain, $accessToken)

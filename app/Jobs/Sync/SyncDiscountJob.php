@@ -65,6 +65,7 @@ class SyncDiscountJob implements ShouldQueue
             }
             $response = $this->getDiscountsFromShopify();
             $discounts = $response->data->discountNodes->edges ?? [];
+            $dataSave = [];
             foreach ($discounts as $discountEdge) {
                 $dataSave[] = $this->prepareDiscountData($discountEdge->node);
             }
