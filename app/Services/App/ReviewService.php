@@ -3,6 +3,7 @@
 namespace App\Services\App;
 
 use App\Models\ProductReviewModel;
+use App\Repository\ProductReviewRepository;
 use Illuminate\Support\Facades\DB;
 use App\Services\AbstractService;
 use Exception;
@@ -12,10 +13,12 @@ use Google\Service\Merchant\ProductReview;
 class ReviewService extends AbstractService
 {
     protected $sentry;
+    protected $productReviewRepository;
 
     public function __construct()
     {
         $this->sentry = app('sentry');
+        $this->productReviewRepository = app(ProductReviewRepository::class);
     }
 
     public function addReview(string $domain, array $data)
@@ -336,5 +339,122 @@ class ReviewService extends AbstractService
             'status' => 'error',
             'message' => 'Database error',
         ];
+    }
+
+    public function getManageReviews(string $domain, array $data): array
+    {
+        try {
+            $listProduct = $this->productReviewRepository->getReviewByProduct($domain, $data);
+            return [
+                'status' => 'success',
+                'data' => $listProduct
+            ];
+        } catch (Exception $exception) {
+            dd($exception);
+            $this->sentry->captureException($exception);
+        }
+        return [
+            'status' => 'error',
+            'message' => [],
+        ];
+    }
+
+    public function getReviewById(string $domain, int $id, $filter): array
+    {
+        try {
+            $review = $this->productReviewRepository->getReviewById($domain, $id, $filter);
+            if ($review) {
+                return [
+                    'status' => 'success',
+                    'data' => $review
+                ];
+            } else {
+                return [
+                    'status' => 'error',
+                    'message' => 'Review not found'
+                ];
+            }
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return [
+            'status' => 'error',
+            'message' => 'Database error',
+        ];
+    }
+
+    public function updateReviewById(string $domain, int $id, array $data): bool
+    {
+        try {
+            $review = ProductReviewModel::where('domain_name', $domain)
+                ->where('id', $id)
+                ->first();
+            if (!$review) {
+                return false;
+            }
+
+            return $review->update([
+                'review_title' => $data['review_title'] ?? $review->review_title,
+                'review_text'  => $data['review_text'] ?? $review->review_text,
+                'rating'       => $data['rating'] ?? $review->rating,
+                'status'       => $data['status'] ?? $review->status,
+            ]);
+        } catch (Exception $exception) {
+            dd($exception);
+            $this->sentry->captureException($exception);
+            return false;
+        }
+    }
+
+    public function deleteById(string $domain, int $id): bool
+    {
+        try {
+            $review = ProductReviewModel::where('domain_name', $domain)
+                ->where('id', $id)
+                ->first();
+            if (!$review) {
+                return false;
+            }
+
+            return $review->delete();
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+            return false;
+        }
+    }
+    public function bulkAction(string $domain, array $data): bool
+    {
+        try {
+            if (empty($data['ids']) || empty($data['action'])) {
+                return false;
+            }
+            switch ($data['action']) {
+                case 'delete':
+                    $this->productReviewRepository->deleteReviews($domain, $data);
+
+                    break;
+                case 'approved':
+                case 'pending':
+                    $this->productReviewRepository->updateStatusReview($domain, $data);
+                case 'spam':
+                    break;
+                default:
+                    return false;
+            }
+
+            if ($data['action'] === 'delete') {
+                return ProductReviewModel::where('domain_name', $domain)
+                    ->whereIn('id', $data['ids'])
+                    ->delete();
+            } elseif (in_array($data['action'], ['approved', 'pending', 'spam'])) {
+                return ProductReviewModel::where('domain_name', $domain)
+                    ->whereIn('id', $data['ids'])
+                    ->update(['status' => $data['action']]);
+            }
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+            return false;
+        }
+        return false;
     }
 }

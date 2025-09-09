@@ -143,4 +143,78 @@ class ReviewController extends Controller
         $result = $this->reviewService->countComment($domain, $data);
         return response()->json($result);
     }
+    public function getManageReviews(Request $request)
+    {
+        $data = $request->all();
+        $domain = $request->input('shopInfo')['shop'];
+
+        $result = $this->reviewService->getManageReviews($domain, $data);
+        return response()->json($result);
+    }
+
+    public function getReviewById(Request $request, $id)
+    {
+        $domain = $request->input('shopInfo')['shop'];
+        $filter = $request->all();
+
+        $result = $this->reviewService->getReviewById($domain, $id, $filter);
+        return response()->json($result);
+    }
+
+    public function updateReviewById($id, Request $request)
+    {
+        $data = $request->all();
+        $domain = $request->input('shopInfo')['shop'];
+
+
+        $result = $this->reviewService->updateReviewById($domain, $id, $data);
+        if ($result) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Review updated successfully',
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Database error',
+        ]);
+    }
+
+    public function deleteById($id, Request $request)
+    {
+        $domain = $request->input('shopInfo')['shop'];
+
+        $result = $this->reviewService->deleteById($domain, $id);
+        if ($result) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Review deleted successfully',
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Database error',
+        ]);
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $data = $request->all();
+        $domain = $request->input('shopInfo')['shop'];
+
+        $result = $this->reviewService->bulkAction($domain, $data);
+        if ($result) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Bulk action completed successfully',
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Database error',
+        ]);
+    }
 }
