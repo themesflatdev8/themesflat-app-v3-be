@@ -534,10 +534,10 @@ class ShopifyApiService
                     'hasNextPage' => $page < $totalPages,
                     'hasPrevPage' => $page > 1,
                     'nextPageUrl' => $page < $totalPages
-                        ? $this->buildQueryUrl('/api_products', array_merge($data, ['page' => $page + 1, 'nextPageUrl' => null]))
+                        ? $this->buildQueryUrl('/api-products', array_merge($data, ['page' => $page + 1, 'nextPageUrl' => null]))
                         : null,
                     'prevPageUrl' => $page > 1
-                        ? $this->buildQueryUrl('/api_products', array_merge($data, ['page' => $page - 1, 'nextPageUrl' => null]))
+                        ? $this->buildQueryUrl('/api-products', array_merge($data, ['page' => $page - 1, 'nextPageUrl' => null]))
                         : null,
                 ]
             ];
