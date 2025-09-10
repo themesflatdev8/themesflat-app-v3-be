@@ -17,9 +17,9 @@ class StorefrontMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $shopifyDomain = $request->get('domain_name') ?? $request->get('domain');
+        $shopifyDomain = ($request->get('domain_name') ?? $request->get('domain')) ?? $request->get('shop');
+        /** @var ShopRepository $shopRepository */
         $shopRepository = app(ShopRepository::class);
-
         $shopInfo = $shopRepository->detailByShopifyDomain($shopifyDomain);
         if (empty($shopInfo) || !$shopInfo['is_active']) {
             return [

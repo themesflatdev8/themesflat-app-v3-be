@@ -4,8 +4,10 @@ namespace Modules\Auth\Events;
 
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
-class SyncSuccessEvent
+class SyncSuccessEvent implements ShouldBroadcastNow
 {
     use SerializesModels;
 
@@ -16,11 +18,13 @@ class SyncSuccessEvent
      */
     protected $shopId;
     protected $resource;
+    protected $status;
 
     public function __construct($shopId, $resource, $status)
     {
         $this->shopId = $shopId;
         $this->resource = $resource;
+        $this->status = $status;
     }
 
     /**
@@ -44,5 +48,15 @@ class SyncSuccessEvent
     {
         // Tên sự kiện phải khớp với tên bạn lắng nghe ở client (ví dụ: `sync-completed`)
         return 'sync-completed';
+    }
+    /**
+     * Payload trả về cho client
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'resource' => $this->resource,
+            'status'   => $this->status,
+        ];
     }
 }

@@ -18,6 +18,7 @@ Route::middleware('storefront')->group(function () {
     Route::get('/recent', [ProductController::class, 'getRecentViews']);
     Route::get('/product-views', [ProductController::class, 'getProductViews']);
     Route::get('/product-top-view', [ProductController::class, 'productTopView']);
+    Route::get('/api-products', [ProductController::class, 'getApiProduct']);
 
     Route::post('/search', [SearchController::class, 'search']);
     Route::get('/top-keywords', [SearchController::class, 'topKeywords']);
