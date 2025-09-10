@@ -116,10 +116,7 @@ class ProductController extends Controller
             $shopifyApiService = app(ShopifyApiService::class);
             $shopifyApiService->setShopifyHeader($domain, $accessToken);
             $result = $shopifyApiService->getApiProduct($domain, $accessToken, $data);
-            return response()->json([
-                'status' => 'success',
-                'data' => $result
-            ]);
+            return response()->json($result);
         } catch (\Exception $e) {
             $this->sentry->captureException($e);
         }
