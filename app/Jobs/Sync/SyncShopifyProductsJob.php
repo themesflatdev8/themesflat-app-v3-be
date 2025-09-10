@@ -13,7 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Services\Shopify\ShopifyApiService;
 
-class SyncShopifyProductsJob implements ShouldQueue
+class SyncShopifyProductsJob //implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

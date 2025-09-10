@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\GetProductViewRequest;
 use App\Repository\DiscountRepository;
 use App\Repository\ProductRepository;
+use App\Services\Shopify\ShopifyApiService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -32,7 +33,6 @@ class ProductController extends Controller
                 'data' => $result
             ]);
         } catch (\Exception $e) {
-            dd($e);
             $this->sentry->captureException($e);
         }
         return response()->json([
@@ -103,6 +103,28 @@ class ProductController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $parsed
+        ]);
+    }
+
+    public function getApiProduct(Request $request)
+    {
+        try {
+            $domain = $request->input('shopInfo')['shop'];
+            $accessToken = $request->input('shopInfo')['access_token'];
+            $data = $request->all();
+            /** @var ShopifyApiService $shopifyApiService */
+            $shopifyApiService = app(ShopifyApiService::class);
+            $shopifyApiService->setShopifyHeader($domain, $accessToken);
+            $result = $shopifyApiService->getApiProduct($domain, $accessToken, $data);
+            return response()->json([
+                'status' => 'success',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+        }
+        return response()->json([
+            'status' => 'error',
         ]);
     }
 }

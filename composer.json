@@ -20,6 +20,7 @@
         "phpmailer/phpmailer": "^6.9",
         "predis/predis": "^3.2",
         "prettus/l5-repository": "^2.8",
+        "pusher/pusher-php-server": "^7.2",
         "sentry/sentry-laravel": "^2.13",
         "shopify/shopify-api": "^2.0"
     },

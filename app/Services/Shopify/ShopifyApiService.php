@@ -3,7 +3,7 @@
 
 namespace App\Services\Shopify;
 
-
+use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Client;
 
 class ShopifyApiService
@@ -393,5 +393,183 @@ class ShopifyApiService
         ];
         $response = $this->post('graphql.json', $graphqlParam);
         return $response;
+    }
+    protected function clean($val)
+    {
+        return ($val !== null && $val !== 'null' && $val !== '') ? $val : null;
+    }
+    protected function buildQueryUrl($base, $params = [])
+    {
+        $params = array_filter($params, fn($v) => $this->clean($v) !== null);
+        return $base . '?' . http_build_query($params);
+    }
+
+    public function getApiProduct($domain, $accessToken, $data)
+    {
+        try {
+            $page = intval($data['page'] ?? 1);
+            $limit = 12;
+            $offset = ($page - 1) * $limit;
+
+            // API URL
+            $apiVersion = config('tf_shopify.api_version');
+            $apiUrl = $this->clean($data['nextPageUrl'] ?? null);
+            if (!$apiUrl) {
+                $apiUrl = "https://{$domain}/admin/api/{$apiVersion}/products.json?limit=250";
+                if (!empty($data['collection'])) {
+                    $apiUrl .= "&collection_id=" . $data['collection'];
+                }
+            }
+
+            $res = Http::withHeaders([
+                'X-Shopify-Access-Token' => $accessToken,
+                'Content-Type' => 'application/json',
+            ])->get($apiUrl);
+            if ($res->failed()) {
+                return response()->json(['error' => 'API error'], $res->status());
+            }
+
+            $data = $res->json();
+            $products = $data['products'] ?? [];
+
+            // ----------- Lọc -----------
+            $applyPrice = fn($p) => floatval($p['variants'][0]['price'] ?? 0);
+            $applyCompareAt = fn($p) => floatval($p['variants'][0]['compare_at_price'] ?? 0);
+
+            if (!empty($data['minPrice'])) {
+                $products = array_filter($products, fn($p) => $applyPrice($p) >= floatval($data['minPrice']));
+            }
+            if (!empty($data['maxPrice'])) {
+                $products = array_filter($products, fn($p) => $applyPrice($p) <= floatval($data['maxPrice']));
+            }
+
+            if (!empty($data['color'])) {
+                $colors = array_map('strtolower', explode(',', $data['color']));
+                $products = array_filter($products, function ($p) use ($colors) {
+                    return collect($p['variants'] ?? [])->contains(function ($v) use ($colors) {
+                        return collect([$v['option1'] ?? null, $v['option2'] ?? null, $v['option3'] ?? null])
+                            ->filter()
+                            ->contains(fn($opt) => collect($colors)->contains(fn($c) => str_contains(strtolower($opt), $c)));
+                    });
+                });
+            }
+
+            if (!empty($data['size'])) {
+                $sizes = array_map('strtolower', explode(',', $data['size']));
+                $products = array_filter($products, function ($p) use ($sizes) {
+                    return collect($p['variants'] ?? [])->contains(function ($v) use ($sizes) {
+                        return collect([$v['option1'] ?? null, $v['option2'] ?? null, $v['option3'] ?? null])
+                            ->filter()
+                            ->contains(fn($opt) => collect($sizes)->contains(fn($s) => str_contains(strtolower($opt), $s)));
+                    });
+                });
+            }
+
+            if (($data['stock_status'] ?? null) === 'in_stock') {
+                $products = array_filter($products, fn($p) => collect($p['variants'])->contains(fn($v) => $v['inventory_quantity'] > 0));
+            }
+
+            if (($data['stock_status'] ?? null) === 'out_stock') {
+                $products = array_filter($products, fn($p) => collect($p['variants'])->every(fn($v) => $v['inventory_quantity'] <= 0));
+            }
+
+            if (!empty($data['vendor'])) {
+                $vendor = strtolower($data['vendor']);
+                $products = array_filter($products, fn($p) => str_contains(strtolower($p['vendor'] ?? ''), $vendor));
+            }
+
+            if (($data['sale_only'] ?? null) === 'true') {
+                $products = array_filter($products, fn($p) => $applyCompareAt($p) > $applyPrice($p));
+            }
+
+            if (!empty($data['query'])) {
+                $keyword = strtolower($data['query']);
+                $products = array_filter(
+                    $products,
+                    fn($p) =>
+                    str_contains(strtolower($p['title'] ?? ''), $keyword) ||
+                        str_contains(strtolower($p['body_html'] ?? ''), $keyword)
+                );
+            }
+
+            // ----------- Bestseller -----------
+            if (($data['bestseller'] ?? null) === 'true') {
+                $products = collect($products)->map(function ($p) use ($domain, $accessToken) {
+                    $totalSales = $this->getProductSales($domain, $accessToken, $p['id']);
+                    $p['total_sales'] = $totalSales;
+                    return $p;
+                })->filter(fn($p) => $p['total_sales'] > 100)->values()->toArray();
+            }
+
+            // ----------- Sắp xếp -----------
+            switch ($data['sortBy'] ?? null) {
+                case 'title-ascending':
+                    usort($products, fn($a, $b) => strcmp($a['title'], $b['title']));
+                    break;
+                case 'title-descending':
+                    usort($products, fn($a, $b) => strcmp($b['title'], $a['title']));
+                    break;
+                case 'price-ascending':
+                    usort($products, fn($a, $b) => $applyPrice($a) <=> $applyPrice($b));
+                    break;
+                case 'price-descending':
+                    usort($products, fn($a, $b) => $applyPrice($b) <=> $applyPrice($a));
+                    break;
+            }
+
+            // ----------- Phân trang -----------
+            $total = count($products);
+            $totalPages = ceil($total / $limit);
+            $paginated = array_slice($products, $offset, $limit);
+
+            return [
+                'products' => collect($paginated)->map(fn($p) => [
+                    'handle' => $p['handle'],
+                    'title'  => $p['title'],
+                ])->toArray(),
+                'pagination' => [
+                    'total'       => $total,
+                    'totalPages'  => $totalPages,
+                    'currentPage' => $page,
+                    'hasNextPage' => $page < $totalPages,
+                    'hasPrevPage' => $page > 1,
+                    'nextPageUrl' => $page < $totalPages
+                        ? $this->buildQueryUrl('/api_products', array_merge($data, ['page' => $page + 1, 'nextPageUrl' => null]))
+                        : null,
+                    'prevPageUrl' => $page > 1
+                        ? $this->buildQueryUrl('/api_products', array_merge($data, ['page' => $page - 1, 'nextPageUrl' => null]))
+                        : null,
+                ]
+            ];
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+            return null;
+        }
+    }
+
+    protected function getProductSales($domain, $accessToken, $productId)
+    {
+        $apiVersion = config('tf_shopify.api_version');
+        $url = "https://{$domain}/admin/api/{$apiVersion}/orders.json?product_id={$productId}&status=any";
+
+        $res = Http::withHeaders([
+            'X-Shopify-Access-Token' => $accessToken,
+            'Content-Type' => 'application/json',
+        ])->get($url);
+
+        if ($res->failed()) {
+            return 0;
+        }
+
+        $data = $res->json();
+        $totalSales = 0;
+        foreach ($data['orders'] ?? [] as $order) {
+            foreach ($order['line_items'] ?? [] as $item) {
+                if ($item['product_id'] == $productId) {
+                    $totalSales += $item['quantity'];
+                }
+            }
+        }
+        return $totalSales;
     }
 }
