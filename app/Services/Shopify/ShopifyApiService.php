@@ -429,8 +429,8 @@ class ShopifyApiService
                 return response()->json(['error' => 'API error'], $res->status());
             }
 
-            $data = $res->json();
-            $products = $data['products'] ?? [];
+            $result = $res->json();
+            $products = $result['products'] ?? [];
 
             // ----------- Lọc -----------
             $applyPrice = fn($p) => floatval($p['variants'][0]['price'] ?? 0);
