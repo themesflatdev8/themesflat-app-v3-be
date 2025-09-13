@@ -69,7 +69,7 @@ class SearchService extends AbstractService
                 ->pluck('keyword')
                 ->toArray();
             if (empty($result)) {
-                $results = KeywordSummaryModel::query()
+                $result = KeywordSummaryModel::query()
                     ->select('keyword')
                     ->groupBy('keyword')
                     ->orderByRaw('SUM(count) DESC')

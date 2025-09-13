@@ -29,7 +29,7 @@ class SearchController extends Controller
         $this->searchService->search($domain, $data);
 
         return response()->json([
-            'status' => 'success',
+            'success' => true,
         ]);
     }
 

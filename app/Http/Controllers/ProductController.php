@@ -59,7 +59,6 @@ class ProductController extends Controller
                 'data' => $result
             ]);
         } catch (\Exception $e) {
-            dd($e);
             $this->sentry->captureException($e);
         }
         return response()->json([
@@ -69,40 +68,12 @@ class ProductController extends Controller
 
     public function productTopView(Request $request)
     {
+        $domain = $request->input('shopInfo')['shop'];
         /** @var DiscountRepository $discountRepository */
-        $domainName = $request->input('shopInfo')['shop'];
-        $discountRepository = app(DiscountRepository::class);
-        $result = $discountRepository->getFreeShippingDiscounts($domainName);
-        if (!empty($result)) {
-            return response()->json([
-                'status' => 'success',
-                'data'   => [],
-                'note'   => 'No active free shipping discount codes found.'
-            ], 200);
-        }
-        $parsed = $result->map(function ($item) {
-            $minimum_quantity    = $item->minimum_quantity;
-            $minimum_requirement = $item->minimum_requirement;
-
-            $minimum_value = null;
-            if (!is_null($minimum_quantity)) {
-                $minimum_value = (int) $minimum_quantity;
-            } elseif (!is_null($minimum_requirement)) {
-                $minimum_value = (float) $minimum_requirement;
-            }
-
-            return [
-                'discount_value'      => (float) $item->discount_value,
-                'minimum_requirement' => $minimum_requirement ?? null,
-                'minimum_quantity'    => $minimum_quantity ?? null,
-                'minimum_value'       => $minimum_value,
-                'codes'               => $item->codes,
-            ];
-        });
-
+        $result = $this->productRepository->getTop10ProductView($domain);
         return response()->json([
             'status' => 'success',
-            'data' => $parsed
+            'data' => $result
         ]);
     }
 

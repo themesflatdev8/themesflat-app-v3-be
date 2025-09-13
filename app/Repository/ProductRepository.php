@@ -6,7 +6,7 @@ namespace App\Repository;
 use App\Facade\SystemCache;
 use App\Models\ShopifyRecentViewModel;
 use App\Models\ShopModel;
-use App\Models\StoreModel;
+use Illuminate\Support\Facades\DB;
 use App\Models\ViewLogModel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -65,5 +65,17 @@ class ProductRepository extends AbstractRepository
             ->where('domain_name', $domain)
             ->count();
         return $count;
+    }
+
+    public function getTop10ProductView($domain)
+    {
+        return ViewLogModel::where('domain_name', $domain)
+            ->select('product_id', 'handle', DB::raw('COUNT(*) as total'))
+            ->groupBy('product_id', 'handle')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get()
+            ->makeHidden('total')
+            ->toArray();
     }
 }
