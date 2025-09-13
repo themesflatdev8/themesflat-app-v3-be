@@ -39,15 +39,17 @@ class SearchService extends AbstractService
                 'user_agent'  => $data['user_agent'],
                 'referer'     => $data['referer'],
             ]);
-            KeywordSummaryModel::updateOrInsert(
+            KeywordSummaryModel::upsert(
                 [
-                    'shop_domain' => $domain,
-                    'keyword'     => $data['keyword'],
-                    'date'        => Carbon::today()->toDateString(),
+                    [
+                        'shop_domain' => $domain,
+                        'keyword'     => $data['keyword'],
+                        'date'        => Carbon::today()->toDateString(),
+                        'count'       => 1, // nếu insert mới thì count = 1
+                    ]
                 ],
-                [
-                    'count' => DB::raw('count + 1'),
-                ]
+                ['shop_domain', 'keyword', 'date'], // unique constraint
+                ['count' => DB::raw('keyword_summary.count + 1')] // nếu trùng thì tăng
             );
         } catch (Exception $e) {
             $this->sentry->captureException($e);
