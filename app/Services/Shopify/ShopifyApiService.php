@@ -442,6 +442,9 @@ class ShopifyApiService
             if (!empty($data['maxPrice'])) {
                 $products = array_filter($products, fn($p) => $applyPrice($p) <= floatval($data['maxPrice']));
             }
+            // foreach ($products as &$p) {
+            //     $p['price'] = $applyPrice($p);
+            // }
 
             if (!empty($data['color'])) {
                 $colors = array_map('strtolower', explode(',', $data['color']));
@@ -571,5 +574,120 @@ class ShopifyApiService
             }
         }
         return $totalSales;
+    }
+
+    public function getProductNewest()
+    {
+        $apiVersion = config('tf_shopify.api_version');
+        $url = "https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json";
+        $query = <<<GQL
+        {
+        products(first: 10, sortKey: CREATED_AT, reverse: true) {
+            edges {
+                node {
+                        id
+                        title
+                        createdAt
+                        status
+                        handle
+                        onlineStoreUrl
+                    }
+                }
+            }
+        }
+        GQL;
+
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'X-Shopify-Access-Token' => $this->accessToken,
+            'Content-Type' => 'application/json',
+        ])->post($url, [
+            'query' => $query,
+        ]);
+        $edges = $response->json('data.products.edges') ?? [];
+        return $edges;
+    }
+
+    public function getProductByCategory($collectionId)
+    {
+        try {
+            $apiVersion = config('tf_shopify.api_version');
+            $url = "https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json";
+            $query = <<<GQL
+            {
+            collection(id: "gid://shopify/Collection/{$collectionId}") {
+                title
+                products(first: 10, reverse: true) {
+                        edges {
+                            node {
+                            id
+                            title
+                            handle
+                            createdAt
+                            }
+                        }
+                        }
+                    }
+                }
+            GQL;
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $this->accessToken,
+                'Content-Type' => 'application/json',
+            ])->post($url, ['query' => $query]);
+            return $response->json('data.collection.products.edges');
+        } catch (\Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return [];
+    }
+
+    public function getProductsInfo($productIds)
+    {
+        try {
+            $apiVersion = config('tf_shopify.api_version');
+
+            $ids = array_map(function ($id) {
+                return "gid://shopify/Product/{$id}";
+            }, $productIds);
+
+            $query = <<<'GRAPHQL'
+                query($ids: [ID!]!) {
+                    nodes(ids: $ids) {
+                        ... on Product {
+                        id
+                        handle
+                        }
+                    }
+                }
+            GRAPHQL;
+
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $this->accessToken,
+                'Content-Type' => 'application/json',
+            ])->post("https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json", [
+                'query' => $query,
+                'variables' => [
+                    'ids' => $ids,
+                ],
+            ]);
+
+            if ($response->failed()) {
+                throw new \Exception("Shopify API error: " . $response->body());
+            }
+
+            $data = $response->json();
+
+            return collect($data['data']['nodes'])
+                ->filter() // bỏ null
+                ->map(function ($node) {
+                    return [
+                        'id'     => str_replace('gid://shopify/Product/', '', $node['id']),
+                        'handle' => $node['handle'],
+                    ];
+                })
+                ->values()
+                ->all();
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+        }
     }
 }

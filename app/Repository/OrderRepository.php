@@ -61,21 +61,40 @@ class OrderRepository extends AbstractRepository
     public function alsoBoughts($data)
     {
         $shopDomain = $data['shop_domain'];
-        $variantIds = $data['variant_ids'];
+        $variantIds = $data['variant_ids'] ?? [];
+        $groupBy = $data['group_by'] ?? 'variant_id';
+
+        // danh sách cột select
+        $select = [
+            $groupBy,
+            'title',
+            'variant_title',
+            'sku',
+            'vendor',
+            'product_type',
+            'handle',
+            'image_url',
+            'price',
+            'handle',
+            DB::raw('SUM(quantity) AS total_sold'),
+        ];
+
+        // danh sách cột groupBy (không có aggregate)
+        $groupByCols = [
+            $groupBy,
+            'title',
+            'variant_title',
+            'sku',
+            'vendor',
+            'product_type',
+            'handle',
+            'image_url',
+            'price',
+            'handle'
+        ];
+
         $query = DB::table('domain_order_items')
-            ->select(
-                'variant_id',
-                'title',
-                'variant_title',
-                'sku',
-                'vendor',
-                'product_type',
-                'handle',
-                'image_url',
-                'price',
-                'tags',
-                DB::raw('SUM(quantity) AS total_sold')
-            )
+            ->select($select)
             ->where('shop_domain', $shopDomain)
             ->whereIn('order_id', function ($q) use ($shopDomain, $variantIds) {
                 $q->select('order_id')
@@ -92,22 +111,10 @@ class OrderRepository extends AbstractRepository
             $query->whereNotIn('variant_id', $variantIds);
         }
 
-        $results = $query
-            ->groupBy(
-                'variant_id',
-                'title',
-                'variant_title',
-                'sku',
-                'vendor',
-                'product_type',
-                'handle',
-                'image_url',
-                'price',
-                'tags'
-            )
+        return $query
+            ->groupBy($groupByCols)
             ->orderByDesc('total_sold')
             ->limit(15)
             ->get();
-        return $results;
     }
 }

@@ -149,4 +149,23 @@ class DiscountsController extends Controller
             'data' => []
         ]);
     }
+
+    public function checkDiscount(Request $request)
+    {
+        try {
+            $domain = $request->shopInfo['shop'];
+            $result = $this->discountRepository->getFreeShip($domain);
+
+            return response([
+                'status' => 'success',
+                'data' => !empty($result) ? true : false
+            ]);
+        } catch (\Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return response([
+            'status' => 'success',
+            'data' => false
+        ]);
+    }
 }
