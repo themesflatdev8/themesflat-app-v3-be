@@ -15,10 +15,13 @@ Route::middleware('storefront')->group(function () {
     Route::get('/also-boughts', [OrderController::class, 'alsoBoughts']);
     Route::get('/freeship', [DiscountsController::class, 'getFreeShip']);
     Route::get('/count-shipping', [DiscountsController::class, 'countShipping']);
+    Route::get('/check-coupon', [DiscountsController::class, 'checkDiscount']);
     Route::get('/recent', [ProductController::class, 'getRecentViews']);
     Route::get('/product-views', [ProductController::class, 'getProductViews']);
     Route::get('/product-top-view', [ProductController::class, 'productTopView']);
     Route::get('/api-products', [ProductController::class, 'getApiProduct']);
+    Route::get('/products-recent', [ProductController::class, 'getProductRecent']);
+    Route::get('/products-related', [ProductController::class, 'getProductRelated']);
 
     Route::post('/search', [SearchController::class, 'search']);
     Route::get('/top-keywords', [SearchController::class, 'topKeywords']);

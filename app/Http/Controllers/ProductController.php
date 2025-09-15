@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\GetProductViewRequest;
 use App\Repository\DiscountRepository;
 use App\Repository\ProductRepository;
+use App\Services\App\ProductService;
 use App\Services\Shopify\ShopifyApiService;
 use Illuminate\Http\Request;
 
@@ -13,10 +14,12 @@ class ProductController extends Controller
     //
     protected $productRepository;
     protected $sentry;
+    protected $productService;
 
-    public function __construct(ProductRepository $productRepository)
+    public function __construct(ProductRepository $productRepository, ProductService $productService)
     {
         $this->productRepository = $productRepository;
+        $this->productService = $productService;
         $this->sentry = app('sentry');
     }
     public function getRecentViews(Request $request)
@@ -56,7 +59,7 @@ class ProductController extends Controller
             $result = $this->productRepository->getProductViews($domain, $data);
             return response()->json([
                 'status' => 'success',
-                'data' => $result
+                'views' => (int) $result
             ]);
         } catch (\Exception $e) {
             $this->sentry->captureException($e);
@@ -69,8 +72,26 @@ class ProductController extends Controller
     public function productTopView(Request $request)
     {
         $domain = $request->input('shopInfo')['shop'];
+        $shopInfo = $request->input('shopInfo');
+        $result = $this->productService->productTopView($shopInfo);
         /** @var DiscountRepository $discountRepository */
         $result = $this->productRepository->getTop10ProductView($domain);
+        if (empty($result)) {
+            /** @var ShopifyApiService $shopifyApiService */
+            $shopifyApiService = app(ShopifyApiService::class);
+            $accessToken = $request->input('shopInfo')['access_token'];
+
+            $shopifyApiService->setShopifyHeader($domain, $accessToken);
+
+            $result = $shopifyApiService->getProductNewest($domain, $accessToken);
+            $result = collect($result)->map(function ($item) {
+                return [
+                    'id'     => filter_var($item['node']['id'], FILTER_SANITIZE_NUMBER_INT),
+                    'handle' => $item['node']['handle'],
+                ];
+            })->all();
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => $result
@@ -93,6 +114,35 @@ class ProductController extends Controller
         }
         return response()->json([
             'status' => 'error',
+        ]);
+    }
+
+    public function getProductRelated(Request $request)
+    {
+        /*
+        thứ tự lấy ưu tiên
+        1, cùng category
+        2, bought
+        3, topviewd
+        4, lấy sản phẩm mới nhất
+        *lưu ý: lấy đủ 10 sản phẩm
+        */
+        $shopInfo = $request->input('shopInfo');
+        $collectionId = $request->input('collection_id');
+        $result = $this->productService->getProductRelated($shopInfo, $collectionId);
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+    }
+
+    public function getProductRecent(Request $request)
+    {
+        $shopInfo = $request->input('shopInfo');
+        $result = $this->productService->getProductRecent($shopInfo);
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
         ]);
     }
 }
