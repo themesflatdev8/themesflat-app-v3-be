@@ -36,9 +36,9 @@ class SearchController extends Controller
     public function topKeywords(Request $request)
     {
         $range  = intval($request->input('range', 1));
-        $domain = $request->input('shopInfo')['shop'];
+        $shopInfo = $request->input('shopInfo');
 
-        $result = $this->searchService->topKeywords($domain, $range);
+        $result = $this->searchService->topKeywords($shopInfo, $range);
         return response()->json([
             'status' => 'success',
             'data' => $result

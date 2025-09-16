@@ -18,22 +18,23 @@ class WebhookVerifyHeaders
     {
         try {
             // by pass header to testing
+            // ✅ Bypass chỉ cho local/test
             if ($this->byPassHeader($request)) {
                 return $next($request);
             }
-            $res = $request->all();
-            return $next($request);
-            if ($headerHmac = $request->server('HTTP_X_SHOPIFY_HMAC_SHA256')) {
-                $data     = file_get_contents('php://input');
-                $verified = $this->verifyWebhook($data, $headerHmac);
-                if ($verified) {
-                    return $next($request);
-                } else {
-                    $this->sentry->captureMessage('Webhook uninstall not verify');
-                }
-            } else {
-                $this->sentry->captureMessage('Not exists header HTTP_X_SHOPIFY_HMAC_SHA256');
+
+            $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
+            $data       = $request->getContent();
+
+            if ($hmacHeader && $this->verifyWebhook($data, $hmacHeader)) {
+                return $next($request);
             }
+
+            // ❌ Nếu fail verify
+            $this->sentry->captureMessage('Webhook verify failed', [
+                'shop'  => $request->header('X-Shopify-Shop-Domain'),
+                'topic' => $request->header('X-Shopify-Topic'),
+            ]);
         } catch (\Exception $exception) {
             $this->sentry->captureException($exception);
         }
@@ -47,11 +48,13 @@ class WebhookVerifyHeaders
      *
      * @return bool
      */
-    private function verifyWebhook($data, $hmac_header)
+    private function verifyWebhook($data, $hmacHeader)
     {
-        $calculated_hmac = base64_encode(hash_hmac('sha256', $data, config('tf_common.shopify_api_secret'), true));
+        $calculated = base64_encode(
+            hash_hmac('sha256', $data, config('tf_common.shopify_api_secret'), true)
+        );
 
-        return ($hmac_header == $calculated_hmac);
+        return hash_equals($calculated, $hmacHeader);
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\BlacklistKeywordModel;
 use App\Models\KeywordSummaryModel;
 use App\Models\SearchKeywordModel;
 use App\Services\AbstractService;
+use App\Services\Shopify\ShopifyApiService;
 use Carbon\Carbon;
 use Exception;
 
@@ -56,14 +57,14 @@ class SearchService extends AbstractService
         }
     }
 
-    public function topKeywords($domain, $range)
+    public function topKeywords($shopInfo, $range)
     {
         try {
             // Implement logic to retrieve top keywords
             $startDate = Carbon::today()->subDays($range - 1)->toDateString();
             $result = KeywordSummaryModel::query()
                 ->select('keyword')
-                ->where('shop_domain', $domain)
+                ->where('shop_domain', $shopInfo['shop'])
                 ->where('date', '>=', $startDate)
                 ->groupBy('keyword')
                 ->orderByRaw('SUM(count) DESC')
@@ -79,6 +80,16 @@ class SearchService extends AbstractService
                     ->pluck('keyword')
                     ->toArray();
             }
+            if (empty($result)) {
+                /** @var ShopifyApiService $shopifyApiService */
+                $shopifyApiService = app(ShopifyApiService::class);
+                $shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
+                $products = $shopifyApiService->getProductNewest();
+                $result = collect($products)
+                    ->take(5) // lấy 5 phần tử đầu
+                    ->pluck('node.title');
+            }
+
             return $result;
         } catch (Exception $e) {
             $this->sentry->captureException($e);
