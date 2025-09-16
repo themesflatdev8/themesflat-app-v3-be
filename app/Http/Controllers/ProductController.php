@@ -71,26 +71,8 @@ class ProductController extends Controller
 
     public function productTopView(Request $request)
     {
-        $domain = $request->input('shopInfo')['shop'];
         $shopInfo = $request->input('shopInfo');
         $result = $this->productService->productTopView($shopInfo);
-        /** @var DiscountRepository $discountRepository */
-        $result = $this->productRepository->getTop10ProductView($domain);
-        if (empty($result)) {
-            /** @var ShopifyApiService $shopifyApiService */
-            $shopifyApiService = app(ShopifyApiService::class);
-            $accessToken = $request->input('shopInfo')['access_token'];
-
-            $shopifyApiService->setShopifyHeader($domain, $accessToken);
-
-            $result = $shopifyApiService->getProductNewest($domain, $accessToken);
-            $result = collect($result)->map(function ($item) {
-                return [
-                    'id'     => filter_var($item['node']['id'], FILTER_SANITIZE_NUMBER_INT),
-                    'handle' => $item['node']['handle'],
-                ];
-            })->all();
-        }
 
         return response()->json([
             'status' => 'success',
