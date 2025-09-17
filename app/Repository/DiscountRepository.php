@@ -86,4 +86,17 @@ class DiscountRepository extends AbstractRepository
         $result = $result ? $result->toArray() : [];
         return $result;
     }
+
+    public function checkDiscount($domain, $code)
+    {
+        $now = Carbon::now();
+        return DB::table('domain_discounts')
+            ->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes')
+            ->whereJsonContains('codes', $code)
+            ->where('domain_name', $domain)
+            ->where('type', 'DiscountCodeFreeShipping')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->first();
+    }
 }
