@@ -1,7 +1,6 @@
 <?php
 return [
-    'api_version' => '2025-01',
-    'api_market_version' => '2025-01',
+    'api_version' => '2025-07',
     'scopes' => [
         'read_themes',
         'read_orders',
