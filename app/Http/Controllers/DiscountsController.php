@@ -154,7 +154,8 @@ class DiscountsController extends Controller
     {
         try {
             $domain = $request->shopInfo['shop'];
-            $result = $this->discountRepository->getFreeShip($domain);
+            $code = $request->get('code');
+            $result = $this->discountRepository->checkDiscount($domain, $code);
 
             return response([
                 'status' => 'success',
