@@ -15,10 +15,11 @@ class ReviewService extends AbstractService
     protected $sentry;
     protected $productReviewRepository;
 
-    public function __construct()
+    public function __construct(ProductReviewRepository $productReviewRepository)
     {
         $this->sentry = app('sentry');
-        $this->productReviewRepository = app(ProductReviewRepository::class);
+
+        $this->productReviewRepository = $productReviewRepository;
     }
 
     public function addReview(string $domain, array $data)
@@ -145,7 +146,7 @@ class ReviewService extends AbstractService
                 'review_text'  => $data['review_text'],
                 'rating'       => $data['rating'] ?? null,
                 'user_name'    => $data['user_name'],
-                'status'       => 'approved',
+                'status'       => 'pending',
                 'type'         => $data['type']
             ]));
             return (bool) $result;
