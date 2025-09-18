@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Google\Service\AdExchangeBuyerII\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +12,7 @@ class ProductReviewModel extends Model
 
     protected $primaryKey = 'id';
 
-    public $timestamps = false; // vì bạn chỉ có created_at, không có updated_at
+    public $timestamps = true;
 
     protected $fillable = [
         'user_id',
@@ -27,6 +26,8 @@ class ProductReviewModel extends Model
         'is_admin',
         'status',
         'type',
+        'created_at',
+        'updated_at'
     ];
     /**
      * Scope tìm kiếm theo keyword (ILIKE + trigram index trong PostgreSQL).

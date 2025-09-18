@@ -30,7 +30,7 @@ class SubmitReviewRequest extends FormRequest
             'rating'       => 'required|integer|min:1|max:5',
             'review_text'  => 'required|string|min:5',
             'user_name'    => 'nullable|string|max:100',
-            'user_email'   => 'nullable|email|max:255',
+            'user_email'   => 'nullable|max:255',
             'type'         => 'nullable|string|' //in:product,shop',
         ];
     }
