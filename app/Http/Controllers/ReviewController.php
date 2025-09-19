@@ -202,8 +202,13 @@ class ReviewController extends Controller
     public function bulkAction(Request $request)
     {
         $data = $request->all();
+        if (empty($data['product_id'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'product_id invalid',
+            ]);
+        }
         $domain = $request->input('shopInfo')['shop'];
-
         $result = $this->reviewService->bulkAction($domain, $data);
         if ($result) {
             return response()->json([

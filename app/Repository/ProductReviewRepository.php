@@ -60,7 +60,7 @@ class ProductReviewRepository extends AbstractRepository
 
     public function deleteReviews($domain, $data)
     {
-        $query =  $this->model->where('domain_name', $domain);
+        $query =  $this->model->where('domain_name', $domain)->where('product_id', $data['product_id']);
         // lọc theo status
         if ($data['select_all'] && !empty($data['unselected'])) {
             $query = $query->whereNotIn('id', $data['unselected']);
@@ -74,7 +74,8 @@ class ProductReviewRepository extends AbstractRepository
 
     public function updateStatusReview($domain, $data)
     {
-        $query =  $this->model->where('domain_name', $domain);
+        $query =  $this->model->where('domain_name', $domain)->where('product_id', $data['product_id']);
+
         // lọc theo status
         if ($data['select_all'] && !empty($data['unselected'])) {
             $query = $query->whereNotIn('id', $data['unselected']);
@@ -82,7 +83,6 @@ class ProductReviewRepository extends AbstractRepository
         if (!empty($data['selected'])) {
             $query = $query->whereIn('id', $data['selected']);
         }
-
         return $query->update(['status' => $data['action']]);
     }
 }

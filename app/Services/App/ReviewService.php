@@ -424,36 +424,26 @@ class ReviewService extends AbstractService
     public function bulkAction(string $domain, array $data): bool
     {
         try {
-            if (empty($data['ids']) || empty($data['action'])) {
+            if (empty($data['action'])) {
                 return false;
             }
             switch ($data['action']) {
                 case 'delete':
                     $this->productReviewRepository->deleteReviews($domain, $data);
-
                     break;
                 case 'approved':
                 case 'pending':
                     $this->productReviewRepository->updateStatusReview($domain, $data);
+                    break;
                 case 'spam':
                     break;
                 default:
-                    return false;
-            }
-
-            if ($data['action'] === 'delete') {
-                return ProductReviewModel::where('domain_name', $domain)
-                    ->whereIn('id', $data['ids'])
-                    ->delete();
-            } elseif (in_array($data['action'], ['approved', 'pending', 'spam'])) {
-                return ProductReviewModel::where('domain_name', $domain)
-                    ->whereIn('id', $data['ids'])
-                    ->update(['status' => $data['action']]);
+                    break;
             }
         } catch (Exception $exception) {
             $this->sentry->captureException($exception);
             return false;
         }
-        return false;
+        return true;
     }
 }
