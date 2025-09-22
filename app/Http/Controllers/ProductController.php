@@ -72,7 +72,8 @@ class ProductController extends Controller
     public function productTopView(Request $request)
     {
         $shopInfo = $request->input('shopInfo');
-        $result = $this->productService->productTopView($shopInfo);
+        $limit = $request->input('limit', 10);
+        $result = $this->productService->productTopView($shopInfo, $limit);
 
         return response()->json([
             'status' => 'success',
