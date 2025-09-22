@@ -26,11 +26,11 @@ class ProductService extends AbstractService
         $this->shopifyApiService = $shopifyApiService;
     }
 
-    public function productTopView($shopInfo)
+    public function productTopView($shopInfo, $limit = 10)
     {
         try {
             $domain = $shopInfo['shop'];
-            $result = $this->productRepository->getTop10ProductView($domain);
+            $result = $this->productRepository->getTop10ProductView($domain, $limit);
             if (empty($result)) {
                 /** @var ShopifyApiService $shopifyApiService */
                 $shopifyApiService = app(ShopifyApiService::class);

@@ -67,13 +67,13 @@ class ProductRepository extends AbstractRepository
         return $count;
     }
 
-    public function getTop10ProductView($domain)
+    public function getTop10ProductView($domain, $limit = 10)
     {
         return ViewLogModel::where('domain_name', $domain)
             ->select('product_id', 'handle', DB::raw('COUNT(*) as total'))
             ->groupBy('product_id', 'handle')
             ->orderByDesc('total')
-            ->limit(10)
+            ->limit($limit)
             ->get()
             ->makeHidden('total')
             ->toArray();
