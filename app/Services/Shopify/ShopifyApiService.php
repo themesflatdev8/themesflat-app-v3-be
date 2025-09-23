@@ -689,5 +689,6 @@ class ShopifyApiService
         } catch (\Exception $e) {
             $this->sentry->captureException($e);
         }
+        return  [];
     }
 }
