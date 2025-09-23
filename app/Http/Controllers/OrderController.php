@@ -18,8 +18,8 @@ class OrderController extends Controller
     public function alsoBoughts(Request $request)
     {
         $shop = $request->shopInfo;
-        $data['shop_domain'] = $shop->shop;
-        $data['variant_ids'] = $request->query('variant_ids', '');
+        $data['shop_domain'] = $shop['shop'];
+        $data['variant_ids'] = explode(',', $request->query('variant_ids', ''));
         $result = $this->orderService->alsoBoughts($data);
         return response([
             'status' => 'success',
