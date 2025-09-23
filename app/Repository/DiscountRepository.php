@@ -73,16 +73,23 @@ class DiscountRepository extends AbstractRepository
             ->get();
     }
 
-    public function getFreeShip($domain)
+    public function getFreeShip($domain, $country = null)
     {
         $now = Carbon::now();
         $result = DB::table('domain_discounts')
-            ->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes')
+            ->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes', 'countries')
             ->where('domain_name', $domain)
             ->where('type', 'DiscountCodeFreeShipping')
             ->where('starts_at', '<=', $now)
-            ->where('ends_at', '>=', $now)
-            ->get();
+            ->where('ends_at', '>=', $now);
+        if (!is_null($country)) {
+            $result = $result->where(function ($q) use ($country) {
+                $q->whereJsonContains('countries', $country) // nếu countries là mảng JSON
+                    ->orWhereJsonContains('countries', 'all'); // nếu countries = "all"
+            });
+        }
+
+        $result = $result->get();
         $result = $result ? $result->toArray() : [];
         return $result;
     }

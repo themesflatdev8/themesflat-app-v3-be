@@ -27,7 +27,7 @@ class SyncDiscountJob implements ShouldQueue
      *
      * @var int
      */
-    public $tries = 1;
+    public $tries = 3;
 
     private $products;
 
@@ -84,6 +84,7 @@ class SyncDiscountJob implements ShouldQueue
                 event(new SyncSuccessEvent($this->shopId, config('tf_resource.discount'), 'success'));
             }
         } catch (\Exception $ex) {
+            dd($ex);
             // Handle exception
             $sentry->captureException($ex);
             //remove cache
@@ -94,7 +95,6 @@ class SyncDiscountJob implements ShouldQueue
     }
     private function getDiscountsFromShopify()
     {
-        $this->limit = 1;
         $graphqlParam['query'] = '
                 query ($first: Int!, $cursor: String) {
                     discountNodes(first: $first, after: $cursor) {
@@ -118,6 +118,14 @@ class SyncDiscountJob implements ShouldQueue
                                         codes(first: 2) {
                                             nodes {
                                                 code
+                                            }
+                                        }
+                                        destinationSelection {
+                                            ... on DiscountCountryAll {
+                                            allCountries
+                                            }
+                                            ... on DiscountCountries {
+                                            countries
                                             }
                                         }
                                     }
@@ -445,6 +453,9 @@ class SyncDiscountJob implements ShouldQueue
     {
         $discount =  $discountInfo->discount;
         $statusMap = DiscountModel::STATUS_MAP;
+        $countries = @$discount->destinationSelection->allCountries
+            ? json_encode('all')
+            : json_encode(array_values($discount->destinationSelection->countries ?? []));
 
         $data = [
             'shopify_discount_id' => $discountInfo->id,
@@ -466,6 +477,7 @@ class SyncDiscountJob implements ShouldQueue
             'buy_handles' => null,
             'get_handles' => null,
             'status' => $statusMap[$discount->status] ?? 0,
+            'countries' => $countries,
             'created_at' => now(),
             'updated_at' => now(),
         ];

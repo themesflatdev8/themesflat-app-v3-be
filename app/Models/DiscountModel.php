@@ -40,6 +40,7 @@ class DiscountModel extends Model
         'applies_to',
         'purchase_type',
         'related_handles',
+        'countries',
         'buy_handles',
         'get_handles',
         'status',

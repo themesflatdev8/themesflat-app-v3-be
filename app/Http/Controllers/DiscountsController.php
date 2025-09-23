@@ -106,7 +106,8 @@ class DiscountsController extends Controller
     {
         try {
             $domain = $request->shopInfo['shop'];
-            $result = $this->discountRepository->getFreeShip($domain);
+            $country = $request->get('country', null);
+            $result = $this->discountRepository->getFreeShip($domain, $country);
 
             if (empty($result)) {
                 return [
@@ -132,7 +133,8 @@ class DiscountsController extends Controller
                     'minimum_requirement' => $minimum_requirement ?? null,
                     'minimum_quantity'    => $minimum_quantity ?? null,
                     'minimum_value'       => $minimum_value,
-                    'codes'               => $item->codes,
+                    'codes'               => json_decode($item->codes),
+                    'countries'          => json_decode($item->countries),
                 ];
             })->values()->toArray();
 
