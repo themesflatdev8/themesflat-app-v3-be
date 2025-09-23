@@ -40,7 +40,7 @@ class InstallAppListener
             $storeDataApi = $this->getShopInfoFromShopify($data['shopify_domain'], $data['access_token']);
             if (!empty($storeDataApi)) {
                 $this->saveStoreInfo($storeDataApi, $data['shopify_domain'], $data['access_token'], $data['userType']);
-                $this->saveApprovedDomain($data['shopify_domain'], $data['email']);
+                $this->saveApprovedDomain($data['shopify_domain'], $storeDataApi->email);
                 // dispatch(new SyncShopifyProductsJobV2($storeDataApi->id, $data['shopify_domain'], $data['access_token']));
                 // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'custom_collections'));
                 // dispatch(new SyncCollectionJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], 'smart_collections'));
@@ -76,7 +76,6 @@ class InstallAppListener
             ];
             $result =  ApproveDomainModel::updateOrCreate(['domain_name' => $shopifyDomain], $dataSave);
         } catch (\Exception $e) {
-            info(($e));
             app('sentry')->captureException($e);
         }
         return true;
