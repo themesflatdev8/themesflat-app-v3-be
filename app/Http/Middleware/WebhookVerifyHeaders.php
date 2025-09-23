@@ -26,7 +26,7 @@ class WebhookVerifyHeaders
             if (in_array($shopDomain, [
                 'anv-theme-1.myshopify.com',
                 'anv-theme.myshopify.com',
-                'trung1-gearon.myshopify.com',
+                'trung1-gearo.myshopify.com',
                 'demo-gearo.myshopify.com',
             ])) {
                 return $next($request);
