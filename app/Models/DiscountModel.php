@@ -17,6 +17,7 @@ class DiscountModel extends Model
         'DISABLED' => 0,
         'ACTIVE'   => 1,
         'EXPIRED'  => 2,
+        'SCHEDULED' => 3
     ];
 
 

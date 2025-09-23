@@ -465,7 +465,7 @@ class SyncDiscountJob implements ShouldQueue
             'related_handles' => null,
             'buy_handles' => null,
             'get_handles' => null,
-            'status' => $statusMap[$discount->status],
+            'status' => $statusMap[$discount->status] ?? 0,
             'created_at' => now(),
             'updated_at' => now(),
         ];
