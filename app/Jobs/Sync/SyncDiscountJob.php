@@ -18,7 +18,7 @@ use Illuminate\Queue\SerializesModels;
 use Modules\Auth\Events\SyncSuccessEvent;
 use Throwable;
 
-class SyncDiscountJob //implements ShouldQueue
+class SyncDiscountJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
