@@ -691,4 +691,102 @@ class ShopifyApiService
         }
         return  [];
     }
+
+    public function getProductVariantsByIds($variantIds)
+    {
+        try {
+            $apiVersion = config('tf_shopify.api_version');
+
+            if (empty($variantIds)) {
+                return [];
+            }
+
+            $query = <<<'GRAPHQL'
+                query($ids: [ID!]!) {
+                    nodes(ids: $ids) {
+                        ... on ProductVariant {
+                            id
+                            title
+                            sku
+                            inventoryQuantity
+                            image {
+                                id
+                                originalSrc
+                                altText
+                            }
+                            product {
+                                id
+                                handle
+                                title
+                                onlineStoreUrl
+                                featuredImage  {
+                                    id
+                                    originalSrc
+                                    altText
+                                }
+
+                            }
+                        }
+                    }
+                }
+            GRAPHQL;
+            $data = [];
+            try {
+                $response = Http::withHeaders([
+                    'X-Shopify-Access-Token' => $this->accessToken,
+                    'Content-Type' => 'application/json',
+                ])->post("https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json", [
+                    'query' => $query,
+                    'variables' => [
+                        'ids' => $variantIds,
+                    ],
+                ]);
+
+                if ($response->failed()) {
+                    throw new \Exception("Shopify API error: " . $response->body());
+                }
+
+                $data = $response->json();
+            } catch (\Exception $ex) {
+                $this->sentry->captureException($ex);
+                return [];
+            }
+
+            if (empty($data['data']['nodes'])) {
+                return [];
+            }
+
+            return collect($data['data']['nodes'])
+                ->filter() // bỏ null
+                ->map(function ($node) {
+                    return [
+                        'id'                => str_replace('gid://shopify/ProductVariant/', '', $node['id']),
+                        'title'             => $node['title'],
+                        'sku'               => $node['sku'],
+                        'inventoryQuantity' => $node['inventoryQuantity'],
+                        'image'             => $node['image'] ? [
+                            'id'          => str_replace('gid://shopify/ProductImage/', '', $node['image']['id']),
+                            'originalSrc' => $node['image']['originalSrc'],
+                            'altText'     => $node['image']['altText'],
+                        ] : null,
+                        'product'           => $node['product'] ? [
+                            'id'             => str_replace('gid://shopify/Product/', '', $node['product']['id']),
+                            'handle'         => $node['product']['handle'],
+                            'title'          => $node['product']['title'],
+                            'onlineStoreUrl' => $node['product']['onlineStoreUrl'],
+                            'featuredImage'  => $node['product']['featuredImage'] ? [
+                                'id'          => str_replace('gid://shopify/ProductImage/', '', $node['product']['featuredImage']['id']),
+                                'originalSrc' => $node['product']['featuredImage']['originalSrc'],
+                                'altText'     => $node['product']['featuredImage']['altText'],
+                            ] : null,
+                        ] : null,
+                    ];
+                })
+                ->values()
+                ->all();
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+        }
+        return  [];
+    }
 }
