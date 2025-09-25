@@ -4,9 +4,11 @@ namespace App\Services\App;
 
 use App\Jobs\DeactiveDiscountJob;
 use App\Models\BundlesModel;
+use App\Models\ShopModel;
 use App\Models\StoreModel;
 use App\Models\StoreTestModel;
 use App\Repository\OrderRepository;
+use App\Repository\ShopRepository;
 use App\Services\Shopify\ShopifyApiService;
 use App\Services\AbstractService;
 use Carbon\Carbon;
@@ -66,7 +68,6 @@ class OrderService extends AbstractService
                     'final_line_price' => $finalLinePrice,
                     'line_item_data' => json_encode($item),
                 ];
-                info('$orderData["id"] ' . $orderData['id']);
             }
 
             $dataOrderLog = [
@@ -75,7 +76,7 @@ class OrderService extends AbstractService
                 'action_type' => 'create',
                 'log_data' => json_encode($orderData),
             ];
-
+            $dataOrderItem = $this->getVariantIds($domain, $dataOrderItem);
             //save order
             $this->orderRepository->createOrderItem($dataOrderItem);
             $this->orderRepository->createOrderLog($dataOrderLog);
@@ -88,7 +89,6 @@ class OrderService extends AbstractService
     public function deleteOrder($orderId)
     {
         try {
-            info('Delete order id: ' . $orderId);
             $this->orderRepository->deleteOrder($orderId);
             $this->orderRepository->deleteOrderItem($orderId);
             $dataOrderLog = [
@@ -119,5 +119,35 @@ class OrderService extends AbstractService
             $this->sentry->captureException($exception);
         }
         return [];
+    }
+
+    private function getVariantIds(string $domain, array $data): array
+    {
+        $variantIds = array_map(fn($id) => "gid://shopify/ProductVariant/{$id}", array_column($data, 'variant_id'));
+
+        $shopInfo = ShopModel::where("shop", $domain)->first();
+        /** @var ShopifyApiService $shopifyApiService */
+        $shopifyApiService = app(ShopifyApiService::class);
+
+        $shopifyApiService->setShopifyHeader($domain, $shopInfo['access_token']);
+        $variantInfo = $shopifyApiService->getProductVariantsByIds($variantIds);
+        if (empty($variantInfo)) {
+            return [];
+        }
+        $variantMap = collect($variantInfo)
+            ->mapWithKeys(function ($v) {
+                $id = (int) str_replace('gid://shopify/ProductVariant/', '', $v['id']);
+                return [$id => [
+                    'handle' => $v['product']['handle'] ?? null,
+                    'image_url'  => $v['image']['featuredImage'] ?? $v['product']['featuredImage']['originalSrc'] ?? null,
+                ]];
+            });
+        // Cập nhật $data
+        foreach ($data as $key => $item) {
+            if (isset($variantMap[$item['variant_id']])) {
+                $data[$key] = array_merge($item, $variantMap[$item['variant_id']]);
+            }
+        }
+        return $data;
     }
 }
