@@ -77,7 +77,7 @@ class DiscountRepository extends AbstractRepository
     {
         $now = Carbon::now();
         $result = DB::table('domain_discounts')
-            ->select('discount_value', 'minimum_requirement', 'minimum_quantity', 'codes', 'countries')
+            ->select('discount_value', 'minimum_subtotal', 'minimum_quantity', 'codes', 'countries')
             ->where('domain_name', $domain)
             ->where('type', 'DiscountCodeFreeShipping')
             ->where('starts_at', '<=', $now)

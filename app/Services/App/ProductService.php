@@ -145,4 +145,60 @@ class ProductService extends AbstractService
         }
         return [];
     }
+
+    public function getOff($shopInfo, $ids)
+    {
+        try {
+            $this->shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
+            $variantIds = array_values(array_map(
+                fn($id) => "gid://shopify/ProductVariant/" . trim($id),
+                array_filter(explode(',', $ids))
+            ));
+            // Lấy thông tin biến thể sản phẩm từ Shopify
+            $variants = $this->shopifyApiService->getVariantsByIds($variantIds);
+            $ids = explode(',', $ids);
+            // lọc theo đúng ids user request
+            $filtered = array_filter($variants, function ($variant) use ($ids) {
+                return in_array((string)$variant['id'], $ids, true);
+            });
+
+            $totalDiscount = 0;
+            $resultData = [];
+            foreach ($filtered as $variant) {
+                $price          = (float)($variant['price'] ?? 0);
+                $compareAtPrice = (float)($variant['compare_at_price'] ?? 0);
+
+                $discountPercent = 0;
+                if ($compareAtPrice > 0 && $compareAtPrice > $price) {
+                    $discountPercent = round((($compareAtPrice - $price) / $compareAtPrice) * 100);
+                }
+
+                $totalDiscount += $discountPercent;
+
+                $resultData[] = [
+                    'variant_id'       => $variant['id'],
+                    'title'            => $variant['title'],
+                    'price'            => $variant['price'],
+                    'total_sold'       => rand(1, 10), // giả lập
+                    'discount_percent' => $discountPercent,
+                ];
+            }
+
+            $averageTotalDiscountPercent = count($resultData) > 0
+                ? round($totalDiscount / count($resultData))
+                : 0;
+
+            $result = [
+                'products'                   => $resultData,
+                'averageTotalDiscountPercent' => $averageTotalDiscountPercent,
+            ];
+
+
+
+            return $result;
+        } catch (Exception $e) {
+            $this->sentry->captureException($e);
+        }
+        return [];
+    }
 }

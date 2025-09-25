@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Route;
 
 
 
-
 Route::middleware('storefront')->group(function () {
     Route::get('/also-boughts', [OrderController::class, 'alsoBoughts']);
     Route::get('/freeship', [DiscountsController::class, 'getFreeShip']);
@@ -22,6 +21,7 @@ Route::middleware('storefront')->group(function () {
     Route::get('/api-products', [ProductController::class, 'getApiProduct']);
     Route::get('/products-recent', [ProductController::class, 'getProductRecent']);
     Route::get('/products-related', [ProductController::class, 'getProductRelated']);
+    Route::get('/get-off', [ProductController::class, 'getOff']);
 
     Route::post('/search', [SearchController::class, 'search']);
     Route::get('/top-keywords', [SearchController::class, 'topKeywords']);
