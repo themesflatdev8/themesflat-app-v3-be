@@ -84,7 +84,6 @@ class SyncDiscountJob implements ShouldQueue
                 event(new SyncSuccessEvent($this->shopId, config('tf_resource.discount'), 'success'));
             }
         } catch (\Exception $ex) {
-            dd($ex);
             // Handle exception
             $sentry->captureException($ex);
             //remove cache
@@ -128,6 +127,17 @@ class SyncDiscountJob implements ShouldQueue
                                             countries
                                             }
                                         }
+                                        minimumRequirement {
+                                            ... on DiscountMinimumSubtotal {
+                                                greaterThanOrEqualToSubtotal {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                            ... on DiscountMinimumQuantity {
+                                                greaterThanOrEqualToQuantity
+                                            }
+                                        }
                                     }
                                     ... on DiscountAutomaticFreeShipping {
                                         title
@@ -136,6 +146,12 @@ class SyncDiscountJob implements ShouldQueue
                                         startsAt
                                         endsAt
                                         minimumRequirement {
+                                            ... on DiscountMinimumSubtotal {
+                                                greaterThanOrEqualToSubtotal {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
                                             ... on DiscountMinimumQuantity {
                                                 greaterThanOrEqualToQuantity
                                             }
@@ -456,7 +472,6 @@ class SyncDiscountJob implements ShouldQueue
         $countries = @$discount->destinationSelection->allCountries
             ? json_encode('all')
             : json_encode(array_values($discount->destinationSelection->countries ?? []));
-
         $data = [
             'shopify_discount_id' => $discountInfo->id,
             'title' => $discount->title ?? '',
@@ -469,8 +484,9 @@ class SyncDiscountJob implements ShouldQueue
             'type' => $discount->__typename ?? '',
             'codes' => json_encode([$discount->title]) ?? '',
             'discount_value' => $discount->customerGets->value->percentage ?? null,
-            'minimum_requirement' => $discount->minimumRequirement->greaterThanOrEqualToQuantity ?? null,
-            'minimum_quantity' => null,
+            'minimum_requirement' => null,
+            'minimum_subtotal' => (float) ($discount?->minimumRequirement?->greaterThanOrEqualToSubtotal?->amount ?? 0),
+            'minimum_quantity' => $discount->minimumRequirement->greaterThanOrEqualToQuantity ?? null,
             'applies_to' => $discount->appliesTo ?? null,
             'purchase_type' => $discount->purchaseType ?? null,
             'related_handles' => null,

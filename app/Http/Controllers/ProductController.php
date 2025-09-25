@@ -128,4 +128,15 @@ class ProductController extends Controller
             'data' => $result
         ]);
     }
+
+    public function getOff(Request $request)
+    {
+        $shopInfo = $request->input('shopInfo');
+        $ids = $request->input('ids');
+        $result = $this->productService->getOff($shopInfo, $ids);
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+    }
 }

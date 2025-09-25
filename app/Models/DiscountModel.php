@@ -35,6 +35,7 @@ class DiscountModel extends Model
         'discount_value',
         'minimum_requirement',
         'minimum_quantity',
+        'minimum_subtotal',
         'starts_at',
         'ends_at',
         'applies_to',

@@ -789,4 +789,30 @@ class ShopifyApiService
         }
         return  [];
     }
+    public function getVariantsByIds(array $variantIds): ?array
+    {
+        try {
+            if (empty($variantIds)) {
+                return [];
+            }
+            $idsString = implode(',', $variantIds);
+            $apiVersion = config('tf_shopify.api_version');
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $this->accessToken,
+                'Content-Type'           => 'application/json',
+            ])->get("https://{$this->shopifyDomain}/admin/api/{$apiVersion}/variants.json", [
+                'ids' => $idsString,
+            ]);
+
+            if ($response->failed()) {
+                return [];
+            }
+
+            $data = $response->json();
+            return $data['variants'] ?? [];
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+        }
+        return [];
+    }
 }

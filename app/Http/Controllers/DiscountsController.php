@@ -118,21 +118,15 @@ class DiscountsController extends Controller
             }
 
             $parsed = collect($result)->map(function ($item) {
-                $minimum_quantity = $item->minimum_quantity;
-                $minimum_requirement = $item->minimum_requirement;
+                $minimumQuantity = $item->minimum_quantity;
+                $minimumSubtotal = $item->minimum_subtotal;
 
-                $minimum_value = null;
-                if (!is_null($minimum_quantity)) {
-                    $minimum_value = intval($minimum_quantity);
-                } elseif (!is_null($minimum_requirement)) {
-                    $minimum_value = floatval($minimum_requirement);
-                }
+
 
                 return [
                     'discount_value'      => floatval($item->discount_value),
-                    'minimum_requirement' => $minimum_requirement ?? null,
-                    'minimum_quantity'    => $minimum_quantity ?? null,
-                    'minimum_value'       => $minimum_value,
+                    'minimum_subtotal' =>  $minimumSubtotal ? intval($minimumSubtotal) : null,
+                    'minimum_quantity'    => $minimumQuantity ? intval($minimumQuantity) : null,
                     'codes'               => json_decode($item->codes),
                     'countries'          => json_decode($item->countries),
                 ];
