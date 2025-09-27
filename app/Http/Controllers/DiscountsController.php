@@ -37,7 +37,11 @@ class DiscountsController extends Controller
     {
         $data = $request->all();
         $shopInfo = data_get($data, 'shopInfo', []);
-        $filter = data_get($data, 'filter', []);
+        $filter = [
+            'limit' => $request->query('limit', 10),
+            'status' => $request->query('status', null),
+            'type' => $request->query('type', null),
+        ];
         $discounts = $this->discountRepository->getDiscounts($shopInfo->shop_id, $filter);
         return response(['data' => $discounts]);
     }
