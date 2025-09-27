@@ -44,6 +44,6 @@ Route::group([
     'prefix' => 'discount',
     'middleware' => ['t.auth']
 ], function () {
-    Route::get('/',  [DiscountsController::class, 'getDiscount']);
+    Route::get('/',  [DiscountsController::class, 'getDiscounts']);
     Route::post('/sync',  [DiscountsController::class, 'sync']);
 });
