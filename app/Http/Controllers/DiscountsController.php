@@ -41,6 +41,7 @@ class DiscountsController extends Controller
             'limit' => $request->query('limit', 10),
             'status' => $request->query('status', null),
             'type' => $request->query('type', null),
+            'keyword' => $request->query('keyword', null),
         ];
         $discounts = $this->discountRepository->getDiscounts($shopInfo->shop_id, $filter);
         return response(['data' => $discounts]);

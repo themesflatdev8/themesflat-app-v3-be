@@ -57,6 +57,13 @@ class DiscountRepository extends AbstractRepository
         if (!empty($filter['type'])) {
             $query->where('type', $filter['type']);
         }
+        if (!empty($filter['keyword'])) {
+            $keyword = $filter['keyword'];
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', '%' . $keyword . '%')
+                    ->orWhere('codes', 'like', '%' . $keyword . '%');
+            });
+        }
 
         $discounts = $query->paginate($limit);
 
