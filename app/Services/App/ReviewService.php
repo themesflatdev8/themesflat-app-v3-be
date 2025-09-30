@@ -147,7 +147,9 @@ class ReviewService extends AbstractService
                 'rating'       => $data['rating'] ?? null,
                 'user_name'    => $data['user_name'],
                 'status'       => 'pending',
-                'type'         => $data['type']
+                'type'         => $data['type'],
+                'title'        => $data['title'] ?? null,
+                'handle'       => $data['handle'] ?? null,
             ]));
             return (bool) $result;
         } catch (Exception $exception) {
