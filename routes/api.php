@@ -44,9 +44,9 @@ Route::group(['prefix' => 'webhook'], function () {
     Route::post('collections/delete', [WebhookController::class, 'collectionDelete']);
 
     // https://help.shopify.com/en/manual/your-account/privacy/GDPR
-    Route::post('customers/data_request', [WebhookController::class, 'shopifyRequest']);
-    Route::post('customers/redact', [WebhookController::class, 'shopifyRequest']);
-    Route::post('shop/redact', [WebhookController::class, 'shopifyRequest']);
+    Route::post('customers/data_request', [WebhookController::class, 'customerDataRequest']);
+    Route::post('customers/redact', [WebhookController::class, 'customerRedact']);
+    Route::post('shop/redact', [WebhookController::class, 'shopRedact']);
 
 
     Route::group(['prefix' => 'order'], function () {
@@ -72,7 +72,9 @@ Route::group(['prefix' => 'webhook'], function () {
 
     Route::get('register', function (Illuminate\Http\Request $request) {
         $data = $request->all();
-        dispatch(new RegisterAllShopifyWebHook($data['shopify_domain'], $data['access_token']));
+        $domain = $request->get('shopify_domain');
+        $accessToken = ShopModel::where('shop', $domain)->value('access_token');
+        dispatch(new RegisterAllShopifyWebHook($domain, $accessToken));
     });
 });
 

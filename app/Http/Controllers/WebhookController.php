@@ -86,8 +86,25 @@ class WebhookController extends Controller
         return response()->json(['status' => 'success'], 200);
     }
 
-    public function shopifyRequest(Request $request)
+    public function customerDataRequest(Request $request)
     {
+        info('Customer Data Request:customerDataRequest');
+        $sentry = app('sentry');
+        $sentry->captureMessage('Customer Data Request:customerDataRequest');
+        return response()->json(['status' => 'success'], 200);
+    }
+    public function customerRedact(Request $request)
+    {
+        info('Customer Redact:customerRedact');
+        $sentry = app('sentry');
+        $sentry->captureMessage('Customer Redact:customerRedact');
+        return response()->json(['status' => 'success'], 200);
+    }
+    public function shopRedact(Request $request)
+    {
+        info('Shop Redact:shopRedact');
+        $sentry = app('sentry');
+        $sentry->captureMessage('Shop Redact:shopRedact');
         return response()->json(['status' => 'success'], 200);
     }
 
@@ -135,11 +152,11 @@ class WebhookController extends Controller
             $shopDomain = $request->server('HTTP_X_SHOPIFY_SHOP_DOMAIN');
             $product = $request->all();
 
-            dispatch(new ProductWebhookJob(
-                $shopDomain,
-                "create",
-                $product
-            ));
+            // dispatch(new ProductWebhookJob(
+            //     $shopDomain,
+            //     "create",
+            //     $product
+            // ));
         } catch (Exception $exception) {
             // $this->sentry->captureException($exception);
         }
@@ -153,11 +170,11 @@ class WebhookController extends Controller
         try {
             $shopDomain = $request->server('HTTP_X_SHOPIFY_SHOP_DOMAIN');
             $product = $request->all();
-            dispatch(new ProductWebhookJob(
-                $shopDomain,
-                "update",
-                $product
-            ));
+            // dispatch(new ProductWebhookJob(
+            //     $shopDomain,
+            //     "update",
+            //     $product
+            // ));
         } catch (Exception $exception) {
             // Log::info(print_r($exception->getMessage(), true));
             // $this->sentry->captureException($exception);
@@ -174,11 +191,11 @@ class WebhookController extends Controller
             'id' => $productId
         ];
 
-        dispatch(new ProductWebhookJob(
-            $shopDomain,
-            "delete",
-            $product
-        ));
+        // dispatch(new ProductWebhookJob(
+        //     $shopDomain,
+        //     "delete",
+        //     $product
+        // ));
 
         return response()->json(['status' => 'success'], 200);
     }
