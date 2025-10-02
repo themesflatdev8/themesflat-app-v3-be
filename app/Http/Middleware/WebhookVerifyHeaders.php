@@ -22,15 +22,15 @@ class WebhookVerifyHeaders
             if ($this->byPassHeader($request)) {
                 return $next($request);
             }
-            $shopDomain = $request->header('X-Shopify-Shop-Domain');
-            if (in_array($shopDomain, [
-                'anv-theme-1.myshopify.com',
-                'anv-theme.myshopify.com',
-                'trung1-gearo.myshopify.com',
-                'demo-gearo.myshopify.com',
-            ])) {
-                return $next($request);
-            }
+            // $shopDomain = $request->header('X-Shopify-Shop-Domain');
+            // if (in_array($shopDomain, [
+            //     'anv-theme-1.myshopify.com',
+            //     'anv-theme.myshopify.com',
+            //     'trung1-gearo.myshopify.com',
+            //     'demo-gearo.myshopify.com',
+            // ])) {
+            //     return $next($request);
+            // }
 
 
             if ($headerHmac = $request->server('HTTP_X_SHOPIFY_HMAC_SHA256')) {
