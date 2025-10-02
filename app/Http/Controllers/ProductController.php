@@ -112,7 +112,8 @@ class ProductController extends Controller
         */
         $shopInfo = $request->input('shopInfo');
         $collectionId = $request->input('collection_id');
-        $result = $this->productService->getProductRelated($shopInfo, $collectionId);
+        $limit = $request->input('limit', 10);
+        $result = $this->productService->getProductRelated($shopInfo, $collectionId, $limit);
         return response()->json([
             'status' => 'success',
             'data' => $result
@@ -122,7 +123,8 @@ class ProductController extends Controller
     public function getProductRecent(Request $request)
     {
         $shopInfo = $request->input('shopInfo');
-        $result = $this->productService->getProductRecent($shopInfo);
+        $limit = $request->input('limit', 10);
+        $result = $this->productService->getProductRecent($shopInfo, $limit);
         return response()->json([
             'status' => 'success',
             'data' => $result

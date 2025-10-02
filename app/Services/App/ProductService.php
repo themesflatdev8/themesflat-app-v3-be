@@ -46,13 +46,14 @@ class ProductService extends AbstractService
                     ];
                 })->all();
             }
+            $result = array_slice($result, 0, $limit);
             return $result;
         } catch (\Exception $e) {
             $this->sentry->captureException($e);
         }
         return [];
     }
-    public function getProductRelated($shopInfo, $idCategory)
+    public function getProductRelated($shopInfo, $idCategory, $limit = 10)
     {
         try {
             $this->shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
@@ -60,7 +61,7 @@ class ProductService extends AbstractService
             $result = [];
 
             // helper: thêm product vào result cho đủ số lượng cần
-            $addProducts = function (array $items, int $limit = 10) use (&$result) {
+            $addProducts = function (array $items) use (&$result, $limit) {
                 $needed = $limit - count($result);
                 if ($needed <= 0) return;
                 $result = array_merge($result, array_slice($items, 0, $needed));
@@ -113,14 +114,14 @@ class ProductService extends AbstractService
         return [];
     }
 
-    public function getProductRecent($shopInfo)
+    public function getProductRecent($shopInfo, $limit = 10)
     {
         try {
             $this->shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
 
             $result = [];
             // helper: thêm product vào result cho đủ số lượng cần
-            $addProducts = function (array $items, int $limit = 10) use (&$result) {
+            $addProducts = function (array $items) use (&$result, $limit) {
                 $needed = $limit - count($result);
                 if ($needed <= 0) return;
                 $result = array_merge($result, array_slice($items, 0, $needed));
