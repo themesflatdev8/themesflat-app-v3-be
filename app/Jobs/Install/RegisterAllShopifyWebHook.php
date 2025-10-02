@@ -94,6 +94,18 @@ class RegisterAllShopifyWebHook implements ShouldQueue
     {
         $webhooks = [
             [
+                'address' => config('tf_common.hook_url') . '/api/webhook/shop/redact',
+                'topic' => 'shop/redact',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/customers/redact',
+                'topic' => 'customers/redact',
+            ],
+            [
+                'address' => config('tf_common.hook_url') . '/api/webhook/customers/data_request',
+                'topic' => 'customers/data_request',
+            ],
+            [
                 'address' => config('tf_common.hook_url') . '/api/webhook/uninstall',
                 'topic' => 'app/uninstalled',
             ],
