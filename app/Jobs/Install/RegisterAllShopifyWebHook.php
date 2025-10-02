@@ -51,7 +51,6 @@ class RegisterAllShopifyWebHook implements ShouldQueue
                         ],
                     ]);
                 } catch (\Exception $exception) {
-                    // dump($exception->getMessage());
                     $sentry->captureException($exception);
                 }
             }
@@ -93,18 +92,6 @@ class RegisterAllShopifyWebHook implements ShouldQueue
     private function listWebhookRegister()
     {
         $webhooks = [
-            [
-                'address' => config('tf_common.hook_url') . '/api/webhook/shop/redact',
-                'topic' => 'shop/redact',
-            ],
-            [
-                'address' => config('tf_common.hook_url') . '/api/webhook/customers/redact',
-                'topic' => 'customers/redact',
-            ],
-            [
-                'address' => config('tf_common.hook_url') . '/api/webhook/customers/data_request',
-                'topic' => 'customers/data_request',
-            ],
             [
                 'address' => config('tf_common.hook_url') . '/api/webhook/uninstall',
                 'topic' => 'app/uninstalled',
