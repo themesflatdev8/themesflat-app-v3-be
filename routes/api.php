@@ -3,6 +3,7 @@
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\WebhookController;
 use App\Jobs\Install\RegisterAllShopifyWebHook;
+use App\Models\ShopModel;
 use App\Services\Shopify\ShopifyApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -59,7 +60,9 @@ Route::group(['prefix' => 'webhook'], function () {
     Route::get('all', function (Illuminate\Http\Request $request) {
         try {
             $shopifyApiService = new ShopifyApiService();
-            $shopifyApiService->setShopifyHeader($request->get('shopify_domain'), $request->get('access_token'));
+            $domain = $request->get('shopify_domain');
+            $accessToken = ShopModel::where('shop', $domain)->value('access_token');
+            $shopifyApiService->setShopifyHeader($domain, $accessToken);
             $response = $shopifyApiService->get('webhooks.json');
             dd($response);
         } catch (Exception $exception) {
