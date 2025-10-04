@@ -31,7 +31,9 @@ class SubmitReviewRequest extends FormRequest
             'review_text'  => 'required|string|min:5',
             'user_name'    => 'nullable|string|max:100',
             'user_email'   => 'nullable|max:255',
-            'type'         => 'nullable|string|' //in:product,shop',
+            'type'         => 'nullable|string|', //in:product,shop',
+            'title'        => 'nullable|string|max:255',
+            'handle'       => 'nullable|string|max:255',
         ];
     }
 }
