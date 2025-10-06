@@ -155,6 +155,7 @@ class ShopifyApiService
         array $filters = [],
         int $limit = 250
     ) {
+        return [];
 
         try {
             $field = implode(',', $field);
@@ -409,146 +410,119 @@ class ShopifyApiService
         try {
             $page = intval($data['page'] ?? 1);
             $limit = 12;
-            $offset = ($page - 1) * $limit;
 
-            // API URL
             $apiVersion = config('tf_shopify.api_version');
-            $apiUrl = $this->clean($data['nextPageUrl'] ?? null);
-            if (!$apiUrl) {
-                $apiUrl = "https://{$domain}/admin/api/{$apiVersion}/products.json?limit=250";
-                if (!empty($data['collection'])) {
-                    $apiUrl .= "&collection_id=" . $data['collection'];
-                }
+            $apiUrl = "https://{$domain}/admin/api/{$apiVersion}/graphql.json";
+
+            $afterCursor = $data['after'] ?? null;
+            $querySearch = [];
+
+            if (!empty($data['vendor'])) {
+                $querySearch[] = 'vendor:' . $data['vendor'];
             }
+            if (!empty($data['query'])) {
+                $querySearch[] = $data['query'];
+            }
+            if (!empty($data['collection'])) {
+                $querySearch[] = 'collection_id:' . $data['collection'];
+            }
+
+            $graphqlQuery = <<<'GQL'
+                query getProducts($first: Int!, $after: String, $query: String) {
+                products(first: $first, after: $after, query: $query) {
+                    edges {
+                    cursor
+                    node {
+                        id
+                        handle
+                        title
+                        vendor
+                        descriptionHtml
+                        totalInventory
+                        variants(first: 10) {
+                        edges {
+                            node {
+                            id
+                            title
+                            availableForSale
+                            inventoryQuantity
+
+
+                            selectedOptions {
+                                name
+                                value
+                            }
+                            }
+                        }
+                        }
+                    }
+                    }
+                    pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    }
+                }
+                }
+        GQL;
+
+            $variables = [
+                'first' => $limit,
+                'after' => $afterCursor,
+                'query' => !empty($querySearch) ? implode(" ", $querySearch) : null,
+            ];
 
             $res = Http::withHeaders([
                 'X-Shopify-Access-Token' => $accessToken,
                 'Content-Type' => 'application/json',
-            ])->get($apiUrl);
+            ])->post($apiUrl, [
+                'query' => $graphqlQuery,
+                'variables' => $variables,
+            ]);
+
             if ($res->failed()) {
-                return response()->json(['error' => 'API error'], $res->status());
+                return response()->json(['error' => 'GraphQL API error'], $res->status());
             }
 
             $result = $res->json();
-            $products = $result['products'] ?? [];
+            $edges = $result['data']['products']['edges'] ?? [];
+            $pageInfo = $result['data']['products']['pageInfo'] ?? [];
 
-            // ----------- Lọc -----------
-            $applyPrice = fn($p) => floatval($p['variants'][0]['price'] ?? 0);
-            $applyCompareAt = fn($p) => floatval($p['variants'][0]['compare_at_price'] ?? 0);
-
-            if (!empty($data['minPrice'])) {
-                $products = array_filter($products, fn($p) => $applyPrice($p) >= floatval($data['minPrice']));
-            }
-            if (!empty($data['maxPrice'])) {
-                $products = array_filter($products, fn($p) => $applyPrice($p) <= floatval($data['maxPrice']));
-            }
-            // foreach ($products as &$p) {
-            //     $p['price'] = $applyPrice($p);
-            // }
-
-            if (!empty($data['color'])) {
-                $colors = array_map('strtolower', explode(',', $data['color']));
-                $products = array_filter($products, function ($p) use ($colors) {
-                    return collect($p['variants'] ?? [])->contains(function ($v) use ($colors) {
-                        return collect([$v['option1'] ?? null, $v['option2'] ?? null, $v['option3'] ?? null])
-                            ->filter()
-                            ->contains(fn($opt) => collect($colors)->contains(fn($c) => str_contains(strtolower($opt), $c)));
-                    });
-                });
-            }
-
-            if (!empty($data['size'])) {
-                $sizes = array_map('strtolower', explode(',', $data['size']));
-                $products = array_filter($products, function ($p) use ($sizes) {
-                    return collect($p['variants'] ?? [])->contains(function ($v) use ($sizes) {
-                        return collect([$v['option1'] ?? null, $v['option2'] ?? null, $v['option3'] ?? null])
-                            ->filter()
-                            ->contains(fn($opt) => collect($sizes)->contains(fn($s) => str_contains(strtolower($opt), $s)));
-                    });
-                });
-            }
-
-            if (($data['stock_status'] ?? null) === 'in_stock') {
-                $products = array_filter($products, fn($p) => collect($p['variants'])->contains(fn($v) => $v['inventory_quantity'] > 0));
-            }
-
-            if (($data['stock_status'] ?? null) === 'out_stock') {
-                $products = array_filter($products, fn($p) => collect($p['variants'])->every(fn($v) => $v['inventory_quantity'] <= 0));
-            }
-
-            if (!empty($data['vendor'])) {
-                $vendor = strtolower($data['vendor']);
-                $products = array_filter($products, fn($p) => str_contains(strtolower($p['vendor'] ?? ''), $vendor));
-            }
-
-            if (($data['sale_only'] ?? null) === 'true') {
-                $products = array_filter($products, fn($p) => $applyCompareAt($p) > $applyPrice($p));
-            }
-
-            if (!empty($data['query'])) {
-                $keyword = strtolower($data['query']);
-                $products = array_filter(
-                    $products,
-                    fn($p) =>
-                    str_contains(strtolower($p['title'] ?? ''), $keyword) ||
-                        str_contains(strtolower($p['body_html'] ?? ''), $keyword)
-                );
-            }
-
-            // ----------- Bestseller -----------
-            if (($data['bestseller'] ?? null) === 'true') {
-                $products = collect($products)->map(function ($p) use ($domain, $accessToken) {
-                    $totalSales = $this->getProductSales($domain, $accessToken, $p['id']);
-                    $p['total_sales'] = $totalSales;
-                    return $p;
-                })->filter(fn($p) => $p['total_sales'] > 100)->values()->toArray();
-            }
-
-            // ----------- Sắp xếp -----------
-            switch ($data['sortBy'] ?? null) {
-                case 'title-ascending':
-                    usort($products, fn($a, $b) => strcmp($a['title'], $b['title']));
-                    break;
-                case 'title-descending':
-                    usort($products, fn($a, $b) => strcmp($b['title'], $a['title']));
-                    break;
-                case 'price-ascending':
-                    usort($products, fn($a, $b) => $applyPrice($a) <=> $applyPrice($b));
-                    break;
-                case 'price-descending':
-                    usort($products, fn($a, $b) => $applyPrice($b) <=> $applyPrice($a));
-                    break;
-            }
-
-            // ----------- Phân trang -----------
-            $total = count($products);
-            $totalPages = ceil($total / $limit);
-            $paginated = array_slice($products, $offset, $limit);
-
-            return [
-                'products' => collect($paginated)->map(fn($p) => [
+            $products = collect($edges)->map(function ($edge) {
+                $p = $edge['node'];
+                return [
                     'handle' => $p['handle'],
                     'title'  => $p['title'],
-                ])->toArray(),
+                    'vendor' => $p['vendor'],
+                    'variants' => collect($p['variants']['edges'])->map(fn($v) => $v['node'])->toArray(),
+                    'cursor' => $edge['cursor'],
+                ];
+            })->toArray();
+
+            return [
+                'products' => $products,
                 'pagination' => [
-                    'total'       => $total,
-                    'totalPages'  => $totalPages,
-                    'currentPage' => $page,
-                    'hasNextPage' => $page < $totalPages,
-                    'hasPrevPage' => $page > 1,
-                    'nextPageUrl' => $page < $totalPages
-                        ? $this->buildQueryUrl('/api-products', array_merge($data, ['page' => $page + 1, 'nextPageUrl' => null]))
+                    'hasNextPage' => $pageInfo['hasNextPage'] ?? false,
+                    'hasPrevPage' => $pageInfo['hasPreviousPage'] ?? false,
+                    'nextPageUrl' => ($pageInfo['hasNextPage'] ?? false)
+                        ? $this->buildQueryUrl('/api-products', array_merge($data, [
+                            'page' => $page + 1,
+                            'after' => end($edges)['cursor'] ?? null,
+                        ]))
                         : null,
                     'prevPageUrl' => $page > 1
-                        ? $this->buildQueryUrl('/api-products', array_merge($data, ['page' => $page - 1, 'nextPageUrl' => null]))
+                        ? $this->buildQueryUrl('/api-products', array_merge($data, [
+                            'page' => $page - 1,
+                            'after' => null, // Shopify không cho prev cursor dễ, thường phải tự lưu
+                        ]))
                         : null,
                 ]
             ];
         } catch (\Exception $e) {
             $this->sentry->captureException($e);
-            return null;
         }
+        return null;
     }
+
 
     protected function getProductSales($domain, $accessToken, $productId)
     {
@@ -795,13 +769,45 @@ class ShopifyApiService
             if (empty($variantIds)) {
                 return [];
             }
-            $idsString = implode(',', $variantIds);
+
             $apiVersion = config('tf_shopify.api_version');
+            $apiUrl = "https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json";
+
+            $graphqlQuery = <<<'GQL'
+                query getVariants($ids: [ID!]!) {
+                    nodes(ids: $ids) {
+                        ... on ProductVariant {
+                            id
+                            title
+                            sku
+                            availableForSale
+                            inventoryQuantity
+                            price
+                            compareAtPrice
+                            product {
+                                id
+                                title
+                                handle
+                            }
+                            selectedOptions {
+                                name
+                                value
+                            }
+                        }
+                    }
+                }
+            GQL;
+
+            $variables = [
+                'ids' => $variantIds, // phải truyền đúng định dạng "gid://shopify/ProductVariant/123456789"
+            ];
+
             $response = Http::withHeaders([
                 'X-Shopify-Access-Token' => $this->accessToken,
-                'Content-Type'           => 'application/json',
-            ])->get("https://{$this->shopifyDomain}/admin/api/{$apiVersion}/variants.json", [
-                'ids' => $idsString,
+                'Content-Type' => 'application/json',
+            ])->post($apiUrl, [
+                'query' => $graphqlQuery,
+                'variables' => $variables,
             ]);
 
             if ($response->failed()) {
@@ -809,7 +815,7 @@ class ShopifyApiService
             }
 
             $data = $response->json();
-            return $data['variants'] ?? [];
+            return $data['data']['nodes'] ?? [];
         } catch (\Exception $e) {
             $this->sentry->captureException($e);
         }

@@ -160,7 +160,7 @@ class ProductService extends AbstractService
             $ids = explode(',', $ids);
             // lọc theo đúng ids user request
             $filtered = array_filter($variants, function ($variant) use ($ids) {
-                return in_array((string)$variant['id'], $ids, true);
+                return in_array(filter_var($variant['id'], FILTER_SANITIZE_NUMBER_INT), $ids, true);
             });
 
             $totalDiscount = 0;
@@ -198,6 +198,7 @@ class ProductService extends AbstractService
 
             return $result;
         } catch (Exception $e) {
+            dd($e);
             $this->sentry->captureException($e);
         }
         return [];

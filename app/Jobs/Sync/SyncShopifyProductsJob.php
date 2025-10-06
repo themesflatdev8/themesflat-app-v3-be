@@ -133,11 +133,11 @@ class SyncShopifyProductsJob //implements ShouldQueue
             'images',
             'created_at'
         ];
-        $products = $shopifyService->shopifyApiGetProducts(
-            $fields,
-            ['page_info' => $pageInfo],
-            $this->limitApi
-        );
-        return $products;
+        // $products = $shopifyService->shopifyApiGetProducts(
+        //     $fields,
+        //     ['page_info' => $pageInfo],
+        //     $this->limitApi
+        // );
+        return [];
     }
 }
