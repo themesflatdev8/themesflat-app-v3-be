@@ -61,10 +61,10 @@ class ProductRepository extends AbstractRepository
             'referer'     => $data['referer'],
         ]);
         // 7. Đếm tổng lượt xem theo domain
-        $count = ViewLogModel::where('product_id', $data['product_id'])
+        return  ViewLogModel::where('product_id', $data['product_id'])
             ->where('domain_name', $domain)
+            ->where('viewed_at', '>=', Carbon::now()->subMinutes(5))
             ->count();
-        return $count;
     }
 
     public function getTop10ProductView($domain, $limit = 10)
