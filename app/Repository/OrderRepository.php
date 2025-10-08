@@ -64,35 +64,21 @@ class OrderRepository extends AbstractRepository
         $variantIds = $data['variant_ids'] ?? [];
         $groupBy = $data['group_by'] ?? 'variant_id';
 
-        // danh sách cột select
+        // Danh sách cột select (sử dụng ANY_VALUE để tránh lỗi khi group)
         $select = [
             $groupBy,
-            'title',
-            'variant_title',
-            'sku',
-            'vendor',
-            'product_type',
-            'handle',
-            'image_url',
-            'price',
-            'handle',
+            DB::raw('ANY_VALUE(title) AS title'),
+            DB::raw('ANY_VALUE(variant_title) AS variant_title'),
+            DB::raw('ANY_VALUE(sku) AS sku'),
+            DB::raw('ANY_VALUE(vendor) AS vendor'),
+            DB::raw('ANY_VALUE(product_type) AS product_type'),
+            DB::raw('ANY_VALUE(handle) AS handle'),
+            DB::raw('ANY_VALUE(image_url) AS image_url'),
+            DB::raw('ANY_VALUE(price) AS price'),
             DB::raw('SUM(quantity) AS total_sold'),
         ];
 
-        // danh sách cột groupBy (không có aggregate)
-        $groupByCols = [
-            $groupBy,
-            'title',
-            'variant_title',
-            'sku',
-            'vendor',
-            'product_type',
-            'handle',
-            'image_url',
-            'price',
-            'handle'
-        ];
-
+        // Query chính
         $query = DB::table('domain_order_items')
             ->select($select)
             ->where('shop_domain', $shopDomain)
@@ -107,12 +93,14 @@ class OrderRepository extends AbstractRepository
                 }
             });
 
+        // Loại bỏ chính các variant đang xét
         if (!empty($variantIds)) {
             $query->whereNotIn('variant_id', $variantIds);
         }
 
+        // Gom nhóm & sắp xếp
         return $query
-            ->groupBy($groupByCols)
+            ->groupBy($groupBy)
             ->orderByDesc('total_sold')
             ->limit(15)
             ->get();
