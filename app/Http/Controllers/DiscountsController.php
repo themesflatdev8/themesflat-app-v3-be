@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Facade\SystemCache;
 use App\Jobs\Sync\SyncDiscountJob;
+use App\Models\ResponseModel;
 use App\Repository\DiscountRepository;
 use Illuminate\Http\Request;
 
@@ -109,62 +110,149 @@ class DiscountsController extends Controller
 
     public function getFreeShip(Request $request)
     {
+        $domain = $request->shopInfo['shop'];
+        $country = $request->get('country', null);
+        $apiName = 'getFreeShip';
+        $paramHash = md5(json_encode(['country' => $country]));
+        // Thời gian hết hạn cache (ví dụ: 1 giờ)
+        $expireMinutes = 60;
+
         try {
-            $domain = $request->shopInfo['shop'];
-            $country = $request->get('country', null);
+            // 1️⃣ Kiểm tra cache trong bảng response
+            $cached = ResponseModel::where('shop_domain', $domain)
+                ->where('api_name', $apiName)
+                ->where('param', $paramHash)
+                ->where('expire_time', '>', now())
+                ->first();
+            if ($cached) {
+                return response([
+                    'status' => 'success',
+                    'data' => json_decode($cached->response, true),
+                    'cached' => true, // thêm flag để debug
+                ]);
+            }
+
+            // 2️⃣ Nếu không có cache → gọi repository thật
             $result = $this->discountRepository->getFreeShip($domain, $country);
 
             if (empty($result)) {
-                return [
+                $responseData = [
                     'status' => 'success',
                     'data' => [],
                     'note' => 'No active free shipping discount codes found.',
                 ];
+
+                // Lưu cache rỗng để tránh query lại liên tục
+                ResponseModel::updateOrInsert(
+                    [
+                        'shop_domain' => $domain,
+                        'api_name' => $apiName,
+                        'param' => $paramHash,
+                    ],
+                    [
+                        'response' => json_encode($responseData['data']),
+                        'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
+                        'updated_at' => now(),
+                    ]
+                );
+
+                return response($responseData);
             }
 
+            // 3️⃣ Parse kết quả
             $parsed = collect($result)->map(function ($item) {
                 $minimumQuantity = $item->minimum_quantity;
                 $minimumSubtotal = $item->minimum_subtotal;
 
-
-
                 return [
-                    'discount_value'      => floatval($item->discount_value),
-                    'minimum_subtotal' =>  $minimumSubtotal ? intval($minimumSubtotal) : null,
-                    'minimum_quantity'    => $minimumQuantity ? intval($minimumQuantity) : null,
-                    'codes'               => json_decode($item->codes),
-                    'countries'          => json_decode($item->countries),
+                    'discount_value'    => floatval($item->discount_value),
+                    'minimum_subtotal'  => $minimumSubtotal ? intval($minimumSubtotal) : null,
+                    'minimum_quantity'  => $minimumQuantity ? intval($minimumQuantity) : null,
+                    'codes'             => json_decode($item->codes),
+                    'countries'         => json_decode($item->countries),
                 ];
             })->values()->toArray();
 
+            // 4️⃣ Lưu vào bảng response
+            ResponseModel::updateOrInsert(
+                [
+                    'shop_domain' => $domain,
+                    'api_name' => $apiName,
+                    'param' => $paramHash,
+                ],
+                [
+                    'response' => json_encode($parsed),
+                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
+                    'updated_at' => now(),
+                ]
+            );
 
             return response([
                 'status' => 'success',
-                'data' => $parsed
+                'data' => $parsed,
             ]);
         } catch (\Exception $exception) {
             $this->sentry->captureException($exception);
         }
+
         return response([
             'status' => 'success',
-            'data' => []
+            'data' => [],
         ]);
     }
 
+
     public function checkDiscount(Request $request)
     {
+        $domain = $request->shopInfo['shop'];
+        $code = $request->get('code');
+        $apiName = 'checkDiscount';
+        $paramHash = md5(json_encode(['code' => $code]));
+
+        // Thời gian hết hạn (ví dụ 1 giờ)
+        $expireMinutes = 60;
+
         try {
-            $domain = $request->shopInfo['shop'];
-            $code = $request->get('code');
+            // 1️⃣ Kiểm tra cache trong DB
+            $cached = ResponseModel::where('shop_domain', $domain)
+                ->where('api_name', $apiName)
+                ->where('param', $paramHash)
+                ->where('expire_time', '>', now())
+                ->first();
+
+            if ($cached) {
+                return response([
+                    'status' => 'success',
+                    'data' => json_decode($cached->response, true)
+                ]);
+            }
+
+            // 2️⃣ Nếu không có cache hoặc hết hạn → gọi service thật
             $result = $this->discountRepository->checkDiscount($domain, $code);
+            $responseData = !empty($result) ? true : false;
+
+            // 3️⃣ Lưu lại vào bảng response
+            ResponseModel::updateOrInsert(
+                [
+                    'shop_domain' => $domain,
+                    'api_name' => $apiName,
+                    'param' => $paramHash,
+                ],
+                [
+                    'response' => json_encode($responseData),
+                    'expire_time' =>  now()->addHours(config('tf_cache.limit_cache_database', 10)),
+                    'updated_at' => now(),
+                ]
+            );
 
             return response([
                 'status' => 'success',
-                'data' => !empty($result) ? true : false
+                'data' => $responseData
             ]);
         } catch (\Exception $exception) {
             $this->sentry->captureException($exception);
         }
+
         return response([
             'status' => 'success',
             'data' => false

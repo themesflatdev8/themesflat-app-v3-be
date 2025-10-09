@@ -3,16 +3,16 @@
 
 namespace App\Listeners;
 
-use App\Jobs\CreateBundleCartJob;
-use App\Jobs\CreateBundleSearchJob;
 use App\Jobs\Install\RegisterAllShopifyWebHook;
-use App\Jobs\Sync\SyncCollectionJob;
-use App\Jobs\Sync\SyncShopifyProductsJobV2;
+use App\Jobs\Sync\SyncDiscountJob;
 use App\Models\ApproveDomainModel;
+use App\Models\ResponseModel;
 use App\Models\SettingsModel;
 use App\Models\ShopModel;
 use App\Repository\ShopRepository;
+use App\Services\App\ProductService;
 use App\Services\Shopify\ShopifyApiService;
+use Google\Service\Docs\Response;
 
 class InstallAppListener
 {
@@ -56,7 +56,9 @@ class InstallAppListener
                 //     ]
                 // );
                 dispatch(new RegisterAllShopifyWebHook($data['shopify_domain'], $data['access_token']));
-
+                dispatch(new SyncDiscountJob($storeDataApi->id, $data['shopify_domain'], $data['access_token'], true, 250, '', true));
+                //create endpoint storefront
+                $this->createEndpointStoreFront($data);
                 // dispatch(new GenerateBundleJob($storeDataApi->id, $data['shopify_domain'], $data['access_token']))->delay(now()->addSeconds(20));
             }
         } catch (\Exception $e) {
@@ -115,5 +117,49 @@ class InstallAppListener
         }
 
         return $save;
+    }
+
+    private function createEndpointStoreFront($shopInfo)
+    {
+        try {
+            //create endpoint storefront product top view
+            /** @var ProductService $productService */
+            $productService = app(ProductService::class);
+            $limit = 4;
+            $paramHash = md5(json_encode(['limit' => $limit]));
+            $result = $productService->productTopView($shopInfo, $limit);
+
+            // 3️⃣ Lưu cache
+            ResponseModel::updateOrCreate(
+                [
+                    'shop_domain' => $shopInfo['shop'],
+                    'api_name'    => 'productTopView',
+                    'param'       => $paramHash,
+                ],
+                [
+                    'response'    => json_encode($result),
+                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
+                ]
+            );
+
+
+            $result = $productService->getProductRecent($shopInfo, $limit);
+
+            // 3️⃣ Lưu lại vào bảng responses
+            ResponseModel::updateOrCreate(
+                [
+                    'shop_domain' => $shopInfo['shop'],
+                    'api_name'    => 'getProductRecent',
+                    'param'       => $paramHash,
+                ],
+                [
+                    'response' => json_encode($result),
+                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
+                ]
+            );
+        } catch (\Exception $e) {
+            app('sentry')->captureException($e);
+        }
+        return true;
     }
 }
