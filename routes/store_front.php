@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware('storefront')->group(function () {
-    Route::get('/also-boughts', [OrderController::class, 'alsoBoughts']);
-    Route::get('/freeship', [DiscountsController::class, 'getFreeShip']);
-    Route::get('/count-shipping', [DiscountsController::class, 'countShipping']);
-    Route::get('/check-coupon', [DiscountsController::class, 'checkDiscount']);
-    Route::get('/recent', [ProductController::class, 'getRecentViews']);
-    Route::get('/product-views', [ProductController::class, 'getProductViews']);
+    Route::get('/also-boughts', [OrderController::class, 'alsoBoughts']); //varriant_id
+    Route::get('/freeship', [DiscountsController::class, 'getFreeShip']);  //country
+    Route::get('/count-shipping', [DiscountsController::class, 'countShipping']); //variant_id
+    Route::get('/check-coupon', [DiscountsController::class, 'checkDiscount']); //code
+    Route::get('/recent', [ProductController::class, 'getRecentViews']); //user_id
+    Route::get('/product-views', [ProductController::class, 'getProductViews']); //user_id
     Route::get('/product-top-view', [ProductController::class, 'productTopView']);
     Route::get('/api-products', [ProductController::class, 'getApiProduct']);
     Route::get('/products-recent', [ProductController::class, 'getProductRecent']);
