@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('response', function (Blueprint $table) {
             $table->id();
-            $table->string('shop_domain')->unique();
+            $table->string('shop_domain');
             $table->string('api_name');
             $table->string('param')->nullable();
             $table->timestamp('expire_time');
