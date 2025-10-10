@@ -223,7 +223,8 @@ class DiscountsController extends Controller
             if ($cached) {
                 return response([
                     'status' => 'success',
-                    'data' => json_decode($cached->response, true)
+                    'data' => json_decode($cached->response, true),
+                    'cached' => true, // optional: giúp debug dễ hơn
                 ]);
             }
 
