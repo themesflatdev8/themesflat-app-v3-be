@@ -127,7 +127,8 @@ class ProductController extends Controller
             if ($cached) {
                 return response()->json([
                     'status' => 'success',
-                    'data' => json_decode($cached->response, true)
+                    'data' => json_decode($cached->response, true),
+                    'cached' => true, // optional: giúp debug dễ hơn
                 ]);
             }
 
@@ -272,7 +273,8 @@ class ProductController extends Controller
             if ($cached) {
                 return response()->json([
                     'status' => 'success',
-                    'data' => json_decode($cached->response, true)
+                    'data' => json_decode($cached->response, true),
+                    'cached' => true, // optional: giúp debug dễ hơn
                 ]);
             }
 
@@ -329,7 +331,8 @@ class ProductController extends Controller
             if ($cached) {
                 return response()->json([
                     'status' => 'success',
-                    'data' => json_decode($cached->response, true)
+                    'data' => json_decode($cached->response, true),
+                    'cached' => true, // optional: giúp debug dễ hơn
                 ]);
             }
 
@@ -337,7 +340,7 @@ class ProductController extends Controller
             $result = $this->productService->getOff($shopInfo, $ids);
 
             // 3️⃣ Lưu lại vào bảng responses
-            \App\Models\ResponseModel::updateOrCreate(
+            ResponseModel::updateOrCreate(
                 [
                     'shop_domain' => $shopDomain,
                     'api_name' => $apiName,
@@ -345,7 +348,7 @@ class ProductController extends Controller
                 ],
                 [
                     'response' => json_encode($result),
-                    'expire_time' => now()->addMinutes($expireMinutes),
+                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
                 ]
             );
 
