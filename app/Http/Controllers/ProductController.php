@@ -115,7 +115,6 @@ class ProductController extends Controller
 
         $apiName = 'productTopView';
         $paramHash = md5(json_encode(['limit' => $limit]));
-        $expireMinutes = 60;
 
         try {
             // 1️⃣ Check cache
