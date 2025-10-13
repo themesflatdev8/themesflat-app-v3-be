@@ -3,6 +3,8 @@
 
 namespace App\Services\Shopify;
 
+use App\Models\ResponseModel;
+use Google\Service\Docs\Response;
 use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Client;
 
@@ -552,24 +554,41 @@ class ShopifyApiService
 
     public function getProductNewest()
     {
+        $shopDomain = $this->shopifyDomain;
+        $apiName = 'getProductNewest';
+        $param = md5('default'); // có thể thêm tham số khác nếu cần
+
+        // 🔹 1. Kiểm tra cache
+        $cache = ResponseModel::where('shop_domain', $shopDomain)
+            ->where('api_name', $apiName)
+            ->where('param', $param)
+            ->where('expire_time', '>', now())
+            ->first();
+
+        if ($cache) {
+            // Trả về cache đã có
+            return json_decode($cache->response, true);
+        }
+
+        // 🔹 2. Gọi Shopify API
         $apiVersion = config('tf_shopify.api_version');
         $url = "https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json";
         $query = <<<GQL
-        {
-        products(first: 10, sortKey: CREATED_AT, reverse: true) {
-            edges {
+            {
+            products(first: 10, sortKey: CREATED_AT, reverse: true) {
+                edges {
                 node {
-                        id
-                        title
-                        createdAt
-                        status
-                        handle
-                        onlineStoreUrl
-                    }
+                    id
+                    title
+                    createdAt
+                    status
+                    handle
+                    onlineStoreUrl
+                }
                 }
             }
-        }
-        GQL;
+            }
+            GQL;
 
         $response = \Illuminate\Support\Facades\Http::withHeaders([
             'X-Shopify-Access-Token' => $this->accessToken,
@@ -577,9 +596,25 @@ class ShopifyApiService
         ])->post($url, [
             'query' => $query,
         ]);
+
         $edges = $response->json('data.products.edges') ?? [];
+
+        // 🔹 3. Lưu vào DB cache
+        ResponseModel::updateOrCreate(
+            [
+                'shop_domain' => $shopDomain,
+                'api_name' => $apiName,
+                'param' => $param,
+            ],
+            [
+                'response' => json_encode($edges),
+                'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)), // cấu hình trong .env
+            ]
+        );
+
         return $edges;
     }
+
 
     public function getProductByCategory($collectionId)
     {
