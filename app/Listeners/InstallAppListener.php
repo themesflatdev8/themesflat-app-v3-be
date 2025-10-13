@@ -11,6 +11,7 @@ use App\Models\SettingsModel;
 use App\Models\ShopModel;
 use App\Repository\ShopRepository;
 use App\Services\App\ProductService;
+use App\Services\App\SearchService;
 use App\Services\Shopify\ShopifyApiService;
 use Google\Service\Docs\Response;
 
@@ -154,6 +155,23 @@ class InstallAppListener
                 ],
                 [
                     'response' => json_encode($result),
+                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
+                ]
+            );
+            // top keyword
+            /**  @var \App\Services\App\SearchService $searchService */
+            $searchService = app(SearchService::class);
+            $range = 1;
+            $paramHash = md5(json_encode(['range' => $range]));
+            $result = $searchService->topKeywords($shopInfo, $range);
+            ResponseModel::updateOrCreate(
+                [
+                    'shop_domain' => $shopInfo['shop'],
+                    'api_name'    => 'topKeywords',
+                    'param'       => $paramHash,
+                ],
+                [
+                    'response'    => json_encode($result),
                     'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
                 ]
             );
