@@ -23,11 +23,13 @@ Route::middleware('storefront')->group(function () {
     Route::get('/products-related', [ProductController::class, 'getProductRelated']);
     Route::get('/get-off', [ProductController::class, 'getOff']);
 
+    Route::get('/review-box', [ProductController::class, 'reviewBox']);
+
 
     Route::post('/search', [SearchController::class, 'search']);
     Route::get('/top-keywords', [SearchController::class, 'topKeywords']);
 
-    Route::post('/add-review', [ReviewController::class, 'addReview']);
+    Route::post('/add-review', [ReviewController::class, 'addReview'])->name('reviews.add');
     Route::post('/edit-review', [ReviewController::class, 'editReview']);
     Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
     Route::get('/get-review-summary', [ReviewController::class, 'getReviewSummary']);

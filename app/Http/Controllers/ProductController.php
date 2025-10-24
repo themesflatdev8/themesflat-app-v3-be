@@ -7,8 +7,10 @@ use App\Models\ResponseModel;
 use App\Repository\DiscountRepository;
 use App\Repository\ProductRepository;
 use App\Services\App\ProductService;
+use App\Services\App\ReviewService;
 use App\Services\Shopify\ShopifyApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 
 class ProductController extends Controller
 {
@@ -363,6 +365,36 @@ class ProductController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => []
+        ]);
+    }
+
+
+    public function reviewBox(Request $request)
+    {
+        try {
+            $shopInfo = $request->input('shopInfo');
+            $productId = $request->input('product_id');
+            /** @var ReviewService $reviewService */
+            $reviewService = app(ReviewService::class);
+
+            $reviewData = $reviewService->reviewBox($shopInfo['shop'], $productId);
+            // render view => HTML string
+            $html = View::make('widgets.review-widget', [
+                'productId' => $productId,
+                'shopDomain' => $shopInfo['shop'],
+                'reviews' => $reviewData['reviews'],
+                'avgRating' => $reviewData['average_rating'],
+            ])->render();
+            return response()->json([
+                'status' => 'success',
+                'html' => $html,
+            ]);
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+        }
+        return response()->json([
+            'status' => 'error',
+            'html' => '',
         ]);
     }
 }
