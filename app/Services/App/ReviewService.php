@@ -401,7 +401,6 @@ class ReviewService extends AbstractService
                 'status'       => $data['status'] ?? $review->status,
             ]);
         } catch (Exception $exception) {
-            dd($exception);
             $this->sentry->captureException($exception);
             return false;
         }
@@ -447,5 +446,58 @@ class ReviewService extends AbstractService
             return false;
         }
         return true;
+    }
+
+    public function reviewBox(string $domain, int $productId, string $type = 'product'): array
+    {
+        try {
+            $query = ProductReviewModel::select(
+                'id',
+                'parent_id',
+                'rating',
+                'review_title',
+                'review_text',
+                'user_name',
+                'created_at'
+            )
+                ->where('domain_name', $domain)
+                ->where('product_id', $productId)
+                ->where('status', 'approved')
+                ->where('type', $type)
+                ->orderBy('created_at', 'asc');
+
+            $rows = $query->get() ? $query->get()->toArray() : [];
+            $averageRating = (clone $query)
+                ->avg('rating');
+            // Map thành ID => row
+            $byId = [];
+            foreach ($rows as $row) {
+                $row['replies'] = [];
+                $byId[$row['id']] = $row;
+            }
+
+            // Build tree (gắn reply vào parent)
+            $result = [];
+            foreach ($byId as $id => &$row) {
+                if (!empty($row['parent_id']) && isset($byId[$row['parent_id']])) {
+                    $byId[$row['parent_id']]['replies'][] = &$row;
+                } else {
+                    $result[] = &$row;
+                }
+            }
+
+            return [
+                'status' => 'success',
+                'reviews' => $result,
+                'average_rating' => !empty($averageRating) ? round((float) $averageRating, 2) : null
+            ];
+        } catch (Exception $exception) {
+            $this->sentry->captureException($exception);
+        }
+        return [
+            'status' => 'error',
+            'reviews' => [],
+            'average_rating' => 0.0,
+        ];
     }
 }

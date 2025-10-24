@@ -198,7 +198,6 @@ class ProductService extends AbstractService
 
             return $result;
         } catch (Exception $e) {
-            dd($e);
             $this->sentry->captureException($e);
         }
         return [];
