@@ -35,6 +35,7 @@
     </div>
   </div>
 
+
   <div class="form">
     <!-- form submit review -->
     <form id="review-form" class="review-form" method="POST" action="{{ route('reviews.add') }}">
@@ -42,7 +43,7 @@
 
       <div class="heading">
         <h4>{{ __('Write a review') }}</h4>
-
+        <input type="hidden" name="domain_name" value="{{ $shopDomain }}">
         <!-- Rating stars -->
         <div class="rating-stars">
           <input type="radio" name="rating" id="star5" value="5"><label for="star5"></label>
