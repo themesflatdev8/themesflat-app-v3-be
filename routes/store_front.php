@@ -33,7 +33,7 @@ Route::middleware('storefront')->group(function () {
     Route::post('/edit-review', [ReviewController::class, 'editReview']);
     Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
     Route::get('/get-review-summary', [ReviewController::class, 'getReviewSummary']);
-    Route::post('/submit-review', [ReviewController::class, 'submitReview']);
+    Route::post('/submit-review', [ReviewController::class, 'submitReview'])->name('reviews.submit');
     Route::get('/get-reviews-full', [ReviewController::class, 'getAllReviews']);
     Route::get('/get-comments', [ReviewController::class, 'getComments']);
     Route::post('/update-comments', [ReviewController::class, 'updateComment']);

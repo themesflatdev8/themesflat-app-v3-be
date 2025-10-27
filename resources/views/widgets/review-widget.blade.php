@@ -38,15 +38,15 @@
 
   <div class="form">
     <!-- form submit review -->
-    <form id="review-form" class="review-form" method="POST" action="{{ route('reviews.add') }}">
+    <form id="review-form" class="review-form" method="POST" action="{{ route('reviews.submit') }}">
       @csrf
 
       <div class="heading">
         <h4>{{ __('Write a review') }}</h4>
         <input type="hidden" name="domain_name" value="{{ $shopDomain }}">
         <input type="hidden" name="product_id" value="{{ $productId }}">
-        {{-- <input type="hidden" name="handle" value="{{ $handle }}">
-         <input type="hidden" name="title" value="{{ $title }}"> --}}
+        <input type="hidden" name="handle" value="">
+        <input type="hidden" name="title" value="">
 
         <!-- Rating stars -->
         <div class="rating-stars">
