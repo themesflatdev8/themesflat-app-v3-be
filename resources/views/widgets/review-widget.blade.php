@@ -1,4 +1,4 @@
-<div class="c-productReview" data-product-id="{{ $productId }}" data-shop="{{ $shopDomain }}" data-handle="{{ product.handle }}">>
+<div class="c-productReview" data-product-id="{{ $productId }}" data-shop="{{ $shopDomain }}">
   <div class="head">
     <div class="rate-wrap">
       <div class="avg-rating">
@@ -46,6 +46,7 @@
         <input type="hidden" name="domain_name" value="{{ $shopDomain }}">
         <input type="hidden" name="product_id" value="{{ $productId }}">
         <input type="hidden" name="handle" value="{{ $handle }}">
+         <input type="hidden" name="title" value="{{ $title }}">
 
         <!-- Rating stars -->
         <div class="rating-stars">
