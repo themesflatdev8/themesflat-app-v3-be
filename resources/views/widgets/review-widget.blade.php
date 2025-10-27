@@ -45,8 +45,8 @@
         <h4>{{ __('Write a review') }}</h4>
         <input type="hidden" name="domain_name" value="{{ $shopDomain }}">
         <input type="hidden" name="product_id" value="{{ $productId }}">
-        <input type="hidden" name="handle" value="{{ $handle }}">
-         <input type="hidden" name="title" value="{{ $title }}">
+        {{-- <input type="hidden" name="handle" value="{{ $handle }}">
+         <input type="hidden" name="title" value="{{ $title }}"> --}}
 
         <!-- Rating stars -->
         <div class="rating-stars">
