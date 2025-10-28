@@ -16,7 +16,9 @@
                 </div>
               </div>
 
-              <div class="text">({% if count($reviews) == 1 %}1 review{% else %}{{ count($reviews) }} reviews{% endif %})</div>
+              <div class="text">
+                ({{ count($reviews) == 1 ? '1 review' : count($reviews) . ' reviews' }})
+            </div>
             </div>
           </div>
           <div class="lstSum">
