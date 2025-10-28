@@ -6,77 +6,79 @@
         <div class="c-productReviews">
           <div class="star_wrap">
             <div class="text-center">
-              <div class="number-review">{{ count($reviews) }}</div>
+            <div class="number-review" style="text-align: center;">
+                <img src="{{ asset('images/ion-logo.png') }}" style="    width: 78px;border-radius: 18px;
+    text-align: center;
+" alt="Logo">
 
-              <div class="list-star-default">
-                <div class="star-rating" aria-label="1 star">
-                  <div class="stars-outer">
-                    <div class="stars-inner" style="width: {{ $avgRating }}%;"></div>
-                  </div>
+            </div>
+
+            <div class="list-star-default">
+                <div class="star-rating" aria-label="{{ $avgRating }} stars">
+                    @for($i = 1; $i <= 5; $i++)
+                    @php
+                        $fill = 0; // 0 = xám, 1 = vàng đầy, 0.5 = nửa vàng
+                        if ($avgRating >= $i) {
+                            $fill = 1; // đầy vàng
+                        } elseif ($avgRating > $i - 1) {
+                            $fill = $avgRating - ($i - 1); // phần còn lại
+                        }
+                    @endphp
+                    <svg class="star" viewBox="0 0 24 24">
+                        <defs>
+                        <linearGradient id="grad{{ $i }}">
+                            <stop offset="{{ $fill * 100 }}%" stop-color="#FFD700"/>
+                            <stop offset="{{ $fill * 100 }}%" stop-color="#ccc"/>
+                        </linearGradient>
+                        </defs>
+                        <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07
+                                6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07
+                                1.47 6.14z" fill="url(#grad{{ $i }})"/>
+                    </svg>
+                    @endfor
                 </div>
-              </div>
+                <div class="average-rating" style="text-align: center;">
+                    {{ count($reviews) }} Reviews
+                </div>
+            </div>
 
-              <div class="text">
-                ({{ count($reviews) == 1 ? '1 review' : count($reviews) . ' reviews' }})
-            </div>
-            </div>
           </div>
           <div class="lstSum">
-            <div class="item">
-              <div class="number-1 text-caption-1">5</div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="star-icon">
-                <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z" fill="#000"/>
-              </svg>
-              <div class="line-bg">
-                <div style="width: 100.00%;"></div>
-              </div>
-              <div class="number-2 text-caption-1">1</div>
+            @php
+                // đảm bảo $summary và $totalReviews tồn tại
+                $totalReviews = count($reviews);
+                $summary = $summary ?? [5=>0,4=>0,3=>0,2=>0,1=>0];
+                $totalReviews = $totalReviews ?? array_sum($summary);
+            @endphp
+
+            @foreach(range(5, 1) as $star)
+                @php
+                $count = isset($summary[$star]) ? (int)$summary[$star] : 0;
+                $percent = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
+                // tránh số quá dài, giới hạn 2 chữ số thập phân và không vượt 100
+                $percent = min(100, round($percent, 2));
+                // To string for inline style (Blade sẽ escape %, nhưng đây ok)
+                $percentStyle = $percent . '%';
+                @endphp
+
+                <div class="item" data-star="{{ $star }}">
+                <div class="number-1 text-caption-1">{{ $star }}</div>
+
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    width="20" height="20" class="star-icon" aria-hidden="true">
+                    <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z"
+                        fill="#FFD700"/>
+                </svg>
+
+                <div class="line-bg" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="line-fill" style="width: {{ $percentStyle }}; background: #FFD700;height: 8px;"></div>
+                </div>
+
+                <div class="number-2 text-caption-1">{{ $count }}</div>
+                </div>
+            @endforeach
             </div>
 
-            <div class="item">
-              <div class="number-1 text-caption-1">4</div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="star-icon">
-                <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z" fill="#000"/>
-              </svg>
-              <div class="line-bg">
-                <div style="width: 0.00%;"></div>
-              </div>
-              <div class="number-2 text-caption-1">0</div>
-            </div>
-
-            <div class="item">
-              <div class="number-1 text-caption-1">3</div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="star-icon">
-                <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z" fill="#000"/>
-              </svg>
-              <div class="line-bg">
-                <div style="width: 0.00%;"></div>
-              </div>
-              <div class="number-2 text-caption-1">0</div>
-            </div>
-
-            <div class="item">
-              <div class="number-1 text-caption-1">2</div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="star-icon">
-                <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z" fill="#000"/>
-              </svg>
-              <div class="line-bg">
-                <div style="width: 0.00%;"></div>
-              </div>
-              <div class="number-2 text-caption-1">0</div>
-            </div>
-
-            <div class="item">
-              <div class="number-1 text-caption-1">1</div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="star-icon">
-                <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z" fill="#000"/>
-              </svg>
-              <div class="line-bg">
-                <div style="width: 0.00%;"></div>
-              </div>
-              <div class="number-2 text-caption-1">0</div>
-            </div>
-          </div>
         </div>
       </div>
       <div class="more">
@@ -86,7 +88,7 @@
     </div>
 
     <div class="list">
-      <h4 class="count-number"><span id="count-number">{{ count($reviews) }}</span> Comments</h4>
+      {{-- <h4 class="count-number"><span id="count-number">{{ count($reviews) }}</span> Comments</h4> --}}
       <div class="review-container">
         @foreach($reviews as $r)
           <div class="review-item">
@@ -169,3 +171,107 @@
     </div>
   </div>
 </div>
+<style>
+
+    .lstSum {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%; /* hoặc cố định như bạn muốn */
+  max-width: 360px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.number-1 {
+  width: 18px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.star-icon {
+  flex: 0 0 20px;
+}
+
+
+
+.line-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffc107, #ffb300); /* vàng */
+  transition: width 400ms ease;
+  border-radius: 6px 0 0 6px;
+}
+
+.number-2 {
+  width: 28px;
+  text-align: right;
+  font-size: 13px;
+}
+.line-bg {
+  position: relative;
+  width: 100%;
+  max-width: 200px; /* tùy bạn */
+  height: 10px;
+  background: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+  display: block;
+}
+
+.line-bg div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #f8b400; /* màu vàng sao */
+  transition: width 0.3s ease-in-out;
+  display: block !important;
+}
+
+.c-productReviews .star_wrap {
+    display: contents!important;
+}
+
+
+
+/* stat */
+
+.list-star-default {
+  display: inline-block;
+}
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  width: 20px;
+  height: 20px;
+}
+
+/* rating total */
+.review-badge {
+  width: 40px;
+  height: 40px;
+  background: url('review-icon.png') no-repeat center;
+  background-size: contain;
+  position: relative;
+}
+.review-badge::after {
+  content: attr(data-review);
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  background: red;
+  color: #fff;
+  font-size: 12px;
+  border-radius: 50%;
+  padding: 2px 5px;
+}
+</style>
