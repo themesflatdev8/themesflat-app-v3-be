@@ -344,12 +344,14 @@ class ProductController extends Controller
             $reviewService = app(ReviewService::class);
 
             $reviewData = $reviewService->reviewBox($shopInfo['shop'], $productId);
+            $summary = $reviewService->getReviewSummary($shopInfo['shop'], $productId, 'product');
             // render view => HTML string
             $html = View::make('widgets.review-widget', [
                 'productId' => $productId,
                 'shopDomain' => $shopInfo['shop'],
                 'reviews' => $reviewData['reviews'],
                 'avgRating' => $reviewData['average_rating'],
+                'summary' => $summary['breakdown'] ?? [],
             ])->render();
             return response()->json([
                 'status' => 'success',
