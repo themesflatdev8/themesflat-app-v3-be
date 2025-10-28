@@ -6,6 +6,7 @@ use App\Models\ProductReviewModel;
 use App\Repository\ProductReviewRepository;
 use Illuminate\Support\Facades\DB;
 use App\Services\AbstractService;
+use App\Services\Shopify\ShopifyApiService;
 use Exception;
 use Google\Service\AdExchangeBuyerII\Product;
 use Google\Service\Merchant\ProductReview;
@@ -135,12 +136,21 @@ class ReviewService extends AbstractService
         ];
     }
 
-    public function submitReview(string $domain, array $data)
+    public function submitReview(array $shopInfo, array $data)
     {
         try {
+            if (empty($data['title'] || empty($data['handle']))) {
+                /**  @var ShopifyApiService */
+                $shopifyApiService = app(ShopifyApiService::class);
+                $shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
+                $productInfo = $shopifyApiService->getProductsInfo([$data['product_id']]);
+
+                $data['title'] = $productInfo[0]['title'] ?? '';
+                $data['handle'] = $productInfo[0]['handle'] ?? '';
+            }
             $result = ProductReviewModel::create(([
                 'user_id'      => !empty($data['user_id']) ? $data['user_id'] : $data['user_name'],
-                'domain_name'  => $domain,
+                'domain_name'  => $shopInfo['shop'],
                 'product_id'   => $data['product_id'],
                 'review_title' => $data['review_title'],
                 'review_text'  => $data['review_text'],
@@ -153,6 +163,7 @@ class ReviewService extends AbstractService
             ]));
             return (bool) $result;
         } catch (Exception $exception) {
+            dd(123, $exception);
             $this->sentry->captureException($exception);
         }
         return false;

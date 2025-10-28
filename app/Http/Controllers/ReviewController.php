@@ -89,10 +89,10 @@ class ReviewController extends Controller
     public function submitReview(SubmitReviewRequest $request)
     {
         $data = $request->validated();
-        $domain = $request->input('shopInfo')['shop'];
+        $shopInfo = $request->input('shopInfo');
         $data['type'] = $data['type'] ?? 'product';
 
-        $result = $this->reviewService->submitReview($domain, $data);
+        $result = $this->reviewService->submitReview($shopInfo, $data);
         if ($result) {
             return response()->json([
                 'status'  => 'success',

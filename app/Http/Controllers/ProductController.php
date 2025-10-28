@@ -256,46 +256,12 @@ class ProductController extends Controller
 
     public function getProductRecent(Request $request)
     {
-        $shopInfo = $request->input('shopInfo');
-        $limit = $request->input('limit', 10);
-        $domain = $shopInfo['shop'] ?? null;
-
-        $apiName = 'getProductRecent';
-        $paramHash = md5(json_encode(['limit' => $limit]));
-
         try {
-            // 1️⃣ Kiểm tra cache trong DB
-            $cached = ResponseModel::query()
-                ->where('shop_domain', $domain)
-                ->where('api_name', $apiName)
-                ->where('param', $paramHash)
-                ->where('expire_time', '>', now())
-                ->first();
+            $shopInfo = $request->input('shopInfo');
+            $limit = $request->input('limit', 10);
+            $userId = $request->input('user_id');
 
-            if ($cached) {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => json_decode($cached->response, true),
-                    'cached' => true, // optional: giúp debug dễ hơn
-                ]);
-            }
-
-            // 2️⃣ Gọi service thật nếu chưa có cache
-            $result = $this->productService->getProductRecent($shopInfo, $limit);
-
-            // 3️⃣ Lưu lại vào bảng responses
-            ResponseModel::updateOrCreate(
-                [
-                    'shop_domain' => $domain,
-                    'api_name' => $apiName,
-                    'param' => $paramHash,
-                ],
-                [
-                    'response' => json_encode($result),
-                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
-                ]
-            );
-
+            $result = $this->productService->getProductRecent($shopInfo, $userId, $limit);
             return response()->json([
                 'status' => 'success',
                 'data' => $result
