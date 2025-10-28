@@ -139,15 +139,14 @@ class ReviewService extends AbstractService
     public function submitReview(array $shopInfo, array $data)
     {
         try {
-            if (empty($data['title'] || empty($data['handle']))) {
-                /**  @var ShopifyApiService */
-                $shopifyApiService = app(ShopifyApiService::class);
-                $shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
-                $productInfo = $shopifyApiService->getProductsInfo([$data['product_id']]);
+            /**  @var ShopifyApiService */
+            $shopifyApiService = app(ShopifyApiService::class);
+            $shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
+            $productInfo = $shopifyApiService->getProductsInfo([$data['product_id']]);
 
-                $data['title'] = $productInfo[0]['title'] ?? '';
-                $data['handle'] = $productInfo[0]['handle'] ?? '';
-            }
+            $data['title'] = $productInfo[0]['title'] ?? '';
+            $data['handle'] = $productInfo[0]['handle'] ?? '';
+
             $result = ProductReviewModel::create(([
                 'user_id'      => !empty($data['user_id']) ? $data['user_id'] : $data['user_name'],
                 'domain_name'  => $shopInfo['shop'],
