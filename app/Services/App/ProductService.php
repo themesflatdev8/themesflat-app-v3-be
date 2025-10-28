@@ -3,6 +3,7 @@
 namespace App\Services\App;
 
 use App\Models\ProductReviewModel;
+use App\Models\ShopifyRecentViewModel;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ProductReviewRepository;
@@ -114,12 +115,19 @@ class ProductService extends AbstractService
         return [];
     }
 
-    public function getProductRecent($shopInfo, $limit = 10)
+    public function getProductRecent($shopInfo, $userId, $limit = 10)
     {
         try {
             $this->shopifyApiService->setShopifyHeader($shopInfo['shop'], $shopInfo['access_token']);
 
-            $result = [];
+            $result = ShopifyRecentViewModel::where('domain_name', $shopInfo['shop'])
+                ->where('user_id', $userId)
+                ->orderByDesc('viewed_at')
+                ->limit($limit)
+                ->select(['product_id', 'handle'])
+                ->get()
+                ->toArray();
+
             // helper: thêm product vào result cho đủ số lượng cần
             $addProducts = function (array $items) use (&$result, $limit) {
                 $needed = $limit - count($result);

@@ -664,6 +664,7 @@ class ShopifyApiService
                         ... on Product {
                         id
                         handle
+                        title
                         }
                     }
                 }
@@ -691,6 +692,7 @@ class ShopifyApiService
                     return [
                         'id'     => str_replace('gid://shopify/Product/', '', $node['id']),
                         'handle' => $node['handle'],
+                        'title'  => $node['title'],
                     ];
                 })
                 ->values()
@@ -855,5 +857,85 @@ class ShopifyApiService
             $this->sentry->captureException($e);
         }
         return [];
+    }
+
+    public function getProducts($param)
+    {
+        try {
+            $limit = (int) $param['limit'] ?? 10;
+            $keyword = $param['keyword'] ?? null; // 👉 keyword cần search
+            $afterCursor = $param['cursor'] ?? null;
+
+            $apiVersion = config('tf_shopify.api_version');
+            $apiUrl = "https://{$this->shopifyDomain}/admin/api/{$apiVersion}/graphql.json";
+
+            // 👉 Tạo query search
+            $querySearch = [];
+
+            if (!empty($keyword)) {
+                // search theo title, vendor, tag, sku (tùy bạn chọn)
+                $keyword = trim($keyword);
+                $querySearch[] = "(title:*{$keyword}* OR vendor:*{$keyword}* OR tag:*{$keyword}* OR sku:*{$keyword}*)";
+            }
+
+            $graphqlQuery = <<<'GQL'
+            query getProducts($first: Int!, $after: String, $query: String) {
+                products(first: $first, after: $after, query: $query) {
+                    edges {
+                        cursor
+                        node {
+                            id
+                            handle
+                            title
+                            vendor
+                            descriptionHtml
+                            totalInventory
+                            images(first: 5) {
+                                edges {
+                                    node {
+                                        id
+                                        originalSrc
+                                        altText
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }
+        GQL;
+
+            $variables = [
+                'first' => $limit,
+                'after' => $afterCursor,
+                'query' => !empty($querySearch) ? implode(' ', $querySearch) : null,
+            ];
+
+            $res = Http::withHeaders([
+                'X-Shopify-Access-Token' => $this->accessToken,
+                'Content-Type' => 'application/json',
+            ])->post($apiUrl, [
+                'query' => $graphqlQuery,
+                'variables' => $variables,
+            ]);
+
+            if ($res->failed()) {
+                return response()->json([
+                    'error' => 'GraphQL API error',
+                    'message' => $res->body(),
+                ], $res->status());
+            }
+            $result = $res->json();
+            $edges = @$result['data']['products'] ?: [];
+            return $edges;
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

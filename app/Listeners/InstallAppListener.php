@@ -144,20 +144,7 @@ class InstallAppListener
             );
 
 
-            $result = $productService->getProductRecent($shopInfo, $limit);
 
-            // 3️⃣ Lưu lại vào bảng responses
-            ResponseModel::updateOrCreate(
-                [
-                    'shop_domain' => $shopInfo['shop'],
-                    'api_name'    => 'getProductRecent',
-                    'param'       => $paramHash,
-                ],
-                [
-                    'response' => json_encode($result),
-                    'expire_time' => now()->addHours(config('tf_cache.limit_cache_database', 10)),
-                ]
-            );
             // top keyword
             /**  @var \App\Services\App\SearchService $searchService */
             $searchService = app(SearchService::class);
