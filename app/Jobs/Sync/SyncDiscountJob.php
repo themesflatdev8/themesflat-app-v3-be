@@ -8,6 +8,7 @@ use App\Models\Mongo\Product;
 use App\Models\ProductModel;
 use App\Models\ProductOptionModel;
 use App\Models\ProductVariantModel;
+use App\Models\ResponseModel;
 use App\Services\Shopify\ShopifyApiService;
 use App\Services\Sync\ProductSyncService;
 use Illuminate\Bus\Queueable;
@@ -82,6 +83,9 @@ class SyncDiscountJob implements ShouldQueue
                 dispatch(new self($this->shopId, $this->shopifyDomain, $this->accessToken, false, $this->limit, $this->cursor));
             } else {
                 event(new SyncSuccessEvent($this->shopId, config('tf_resource.discount'), 'success'));
+                ResponseModel::where('shop_domain', $this->shopifyDomain)
+                    ->where('api', 'getFreeShip')
+                    ->delete();
             }
         } catch (\Exception $ex) {
             // Handle exception
