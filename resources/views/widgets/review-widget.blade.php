@@ -7,7 +7,7 @@
           <div class="star_wrap">
             <div class="text-center">
               <div class="number-review" style="text-align: center;">
-                  <img src="{{ asset('images/ion-logo.png') }}" style="    width: 78px;border-radius: 18px;text-align: center;" alt="Logo">
+                  <img src="{{ asset('images/star.png') }}" style="    width: 78px;border-radius: 18px;text-align: center;" alt="Logo">
               </div>
 
               <div class="list-star-default">
