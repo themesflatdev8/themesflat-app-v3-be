@@ -6,79 +6,75 @@
         <div class="c-productReviews">
           <div class="star_wrap">
             <div class="text-center">
-            <div class="number-review" style="text-align: center;">
-                <img src="{{ asset('images/ion-logo.png') }}" style="    width: 78px;border-radius: 18px;
-    text-align: center;
-" alt="Logo">
+              <div class="number-review" style="text-align: center;">
+                  <img src="{{ asset('images/ion-logo.png') }}" style="    width: 78px;border-radius: 18px;text-align: center;" alt="Logo">
+              </div>
 
+              <div class="list-star-default">
+                  <div class="star-rating" aria-label="{{ $avgRating }} stars">
+                      @for($i = 1; $i <= 5; $i++)
+                      @php
+                          $fill = 0; // 0 = xám, 1 = vàng đầy, 0.5 = nửa vàng
+                          if ($avgRating >= $i) {
+                              $fill = 1; // đầy vàng
+                          } elseif ($avgRating > $i - 1) {
+                              $fill = $avgRating - ($i - 1); // phần còn lại
+                          }
+                      @endphp
+                      <svg class="star" viewBox="0 0 24 24">
+                          <defs>
+                          <linearGradient id="grad{{ $i }}">
+                              <stop offset="{{ $fill * 100 }}%" stop-color="#FFD700"/>
+                              <stop offset="{{ $fill * 100 }}%" stop-color="#ccc"/>
+                          </linearGradient>
+                          </defs>
+                          <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07
+                                  6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07
+                                  1.47 6.14z" fill="url(#grad{{ $i }})"/>
+                      </svg>
+                      @endfor
+                  </div>
+              </div>
+              <div class="average-rating" style="text-align: center;">
+                  {{ count($reviews) }} Reviews
+              </div>
             </div>
+            <div class="lstSum">
+              @php
+                  // đảm bảo $summary và $totalReviews tồn tại
+                  $totalReviews = count($reviews);
+                  $summary = $summary ?? [5=>0,4=>0,3=>0,2=>0,1=>0];
+                  $totalReviews = $totalReviews ?? array_sum($summary);
+              @endphp
 
-            <div class="list-star-default">
-                <div class="star-rating" aria-label="{{ $avgRating }} stars">
-                    @for($i = 1; $i <= 5; $i++)
-                    @php
-                        $fill = 0; // 0 = xám, 1 = vàng đầy, 0.5 = nửa vàng
-                        if ($avgRating >= $i) {
-                            $fill = 1; // đầy vàng
-                        } elseif ($avgRating > $i - 1) {
-                            $fill = $avgRating - ($i - 1); // phần còn lại
-                        }
-                    @endphp
-                    <svg class="star" viewBox="0 0 24 24">
-                        <defs>
-                        <linearGradient id="grad{{ $i }}">
-                            <stop offset="{{ $fill * 100 }}%" stop-color="#FFD700"/>
-                            <stop offset="{{ $fill * 100 }}%" stop-color="#ccc"/>
-                        </linearGradient>
-                        </defs>
-                        <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07
-                                6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07
-                                1.47 6.14z" fill="url(#grad{{ $i }})"/>
-                    </svg>
-                    @endfor
-                </div>
-                <div class="average-rating" style="text-align: center;">
-                    {{ count($reviews) }} Reviews
-                </div>
+              @foreach(range(5, 1) as $star)
+                  @php
+                  $count = isset($summary[$star]) ? (int)$summary[$star] : 0;
+                  $percent = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
+                  // tránh số quá dài, giới hạn 2 chữ số thập phân và không vượt 100
+                  $percent = min(100, round($percent, 2));
+                  // To string for inline style (Blade sẽ escape %, nhưng đây ok)
+                  $percentStyle = $percent . '%';
+                  @endphp
+
+                  <div class="item" data-star="{{ $star }}">
+                  <div class="number-1 text-caption-1">{{ $star }}</div>
+
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                      width="20" height="20" class="star-icon" aria-hidden="true">
+                      <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z"
+                          fill="#FFD700"/>
+                  </svg>
+
+                  <div class="line-bg" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100">
+                      <div class="line-fill" style="width: {{ $percentStyle }}; background: #FFD700;height: 8px;"></div>
+                  </div>
+
+                  <div class="number-2 text-caption-1">{{ $count }}</div>
+                  </div>
+              @endforeach
             </div>
-
           </div>
-          <div class="lstSum">
-            @php
-                // đảm bảo $summary và $totalReviews tồn tại
-                $totalReviews = count($reviews);
-                $summary = $summary ?? [5=>0,4=>0,3=>0,2=>0,1=>0];
-                $totalReviews = $totalReviews ?? array_sum($summary);
-            @endphp
-
-            @foreach(range(5, 1) as $star)
-                @php
-                $count = isset($summary[$star]) ? (int)$summary[$star] : 0;
-                $percent = $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0;
-                // tránh số quá dài, giới hạn 2 chữ số thập phân và không vượt 100
-                $percent = min(100, round($percent, 2));
-                // To string for inline style (Blade sẽ escape %, nhưng đây ok)
-                $percentStyle = $percent . '%';
-                @endphp
-
-                <div class="item" data-star="{{ $star }}">
-                <div class="number-1 text-caption-1">{{ $star }}</div>
-
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                    width="20" height="20" class="star-icon" aria-hidden="true">
-                    <path d="M12 17.75l-5.09 3.01 1.47-6.14-4.68-4.07 6.18-.53L12 2l2.12 7.02 6.18.53-4.68 4.07 1.47 6.14z"
-                        fill="#FFD700"/>
-                </svg>
-
-                <div class="line-bg" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100">
-                    <div class="line-fill" style="width: {{ $percentStyle }}; background: #FFD700;height: 8px;"></div>
-                </div>
-
-                <div class="number-2 text-caption-1">{{ $count }}</div>
-                </div>
-            @endforeach
-            </div>
-
         </div>
       </div>
       <div class="more">
@@ -86,7 +82,6 @@
         <span class="tf-btn c-btnCancelReview" style="display: none;">Cancel Review</span>
       </div>
     </div>
-
     <div class="list">
       {{-- <h4 class="count-number"><span id="count-number">{{ count($reviews) }}</span> Comments</h4> --}}
       <div class="review-container">
@@ -109,8 +104,6 @@
         @endforeach
       </div>
     </div>
-
-
     <div class="form">
       <!-- form submit review -->
       <form id="review-form" class="review-form" method="POST" action="{{ route('reviews.submit') }}">
