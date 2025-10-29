@@ -106,7 +106,7 @@
     </div>
     <div class="form">
       <!-- form submit review -->
-      <form id="review-form" class="review-form" method="POST" action="{{ route('reviews.submit') }}">
+      <form id="review-form" class="review-form" method="POST" action="">
         @csrf
 
         <div class="heading">
