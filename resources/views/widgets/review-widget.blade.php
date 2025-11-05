@@ -88,7 +88,9 @@
         @foreach($reviews as $r)
           <div class="review-item">
             <div class="infor">
-              <div class="avatar"></div>
+              <div class="avatar">
+                <img src="{{ asset('images/user.png') }}"  style="height: 100%;" alt="Avatar">
+              </div>
               <div class="content">
                 <h6 class="review-author">
                   {{ $r['user_name'] }}
