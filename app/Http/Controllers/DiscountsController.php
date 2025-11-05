@@ -115,7 +115,6 @@ class DiscountsController extends Controller
         $apiName = 'getFreeShip';
         $paramHash = md5(json_encode(['country' => $country]));
         // Thời gian hết hạn cache (ví dụ: 1 giờ)
-        $expireMinutes = 60;
 
         try {
             // 1️⃣ Kiểm tra cache trong bảng response

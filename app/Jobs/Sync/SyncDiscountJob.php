@@ -84,7 +84,7 @@ class SyncDiscountJob implements ShouldQueue
             } else {
                 event(new SyncSuccessEvent($this->shopId, config('tf_resource.discount'), 'success'));
                 ResponseModel::where('shop_domain', $this->shopifyDomain)
-                    ->where('api', 'getFreeShip')
+                    ->whereIn('api_name', ['getFreeShip', 'checkDiscount'])
                     ->delete();
             }
         } catch (\Exception $ex) {
