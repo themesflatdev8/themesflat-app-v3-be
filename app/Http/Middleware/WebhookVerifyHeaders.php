@@ -15,6 +15,10 @@ class WebhookVerifyHeaders
             $data       = $request->getContent();
 
             if ($hmacHeader && $this->verifyWebhook($data, $hmacHeader)) {
+                Log::warning('Shopify Webhook verification success', [
+                    'path'   => $request->path(),
+                    'header' => $hmacHeader,
+                ]);
                 return $next($request);
             }
 
