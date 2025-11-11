@@ -10,57 +10,40 @@ class WebhookVerifyHeaders
 {
     public function handle(Request $request, Closure $next)
     {
-        try {
-            // ✅ Lấy HMAC header do Shopify gửi
-            $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
+        // Lấy HMAC header
+        $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
 
-            // ✅ Dùng php://input để lấy raw body chính xác (không bị Laravel parse)
-            $data = file_get_contents('php://input');
+        // ✅ Đọc raw body từ php://input TRƯỚC KHI Laravel xử lý gì khác
+        $rawData = file_get_contents('php://input');
 
-            // ✅ Log để debug khi cần
-            Log::debug('Shopify Webhook verify check', [
-                'path'      => $request->path(),
-                'header'    => $hmacHeader,
-                'data_size' => strlen($data),
+        Log::debug('Shopify Webhook verify check', [
+            'path'      => $request->path(),
+            'header'    => $hmacHeader,
+            'data_size' => strlen($rawData),
+        ]);
+
+        if ($hmacHeader && $this->verifyWebhook($rawData, $hmacHeader)) {
+            Log::info('✅ Shopify Webhook verification success', [
+                'path' => $request->path(),
             ]);
-
-            // ✅ Kiểm tra HMAC
-            if ($hmacHeader && $this->verifyWebhook($data, $hmacHeader)) {
-                Log::info('✅ Shopify Webhook verification success', [
-                    'path' => $request->path(),
-                ]);
-                return $next($request);
-            }
-
-            // ❌ Nếu sai thì log chi tiết
-            Log::warning('❌ Shopify Webhook verification failed', [
-                'path'   => $request->path(),
-                'header' => $hmacHeader,
-                'calc'   => $this->calculateHmac($data),
-            ]);
-        } catch (\Exception $exception) {
-            Log::error('Shopify Webhook exception: ' . $exception->getMessage(), [
-                'trace' => $exception->getTraceAsString(),
-            ]);
+            return $next($request);
         }
+
+        Log::warning('❌ Shopify Webhook verification failed', [
+            'path'   => $request->path(),
+            'header' => $hmacHeader,
+            'calc'   => $this->calculateHmac($rawData),
+        ]);
 
         return response()->json(['error' => 'Unauthorized'], 401);
     }
 
-    /**
-     * Verify webhook với HMAC
-     */
     private function verifyWebhook(string $data, string $hmacHeader): bool
     {
         $calculated = $this->calculateHmac($data);
-
-        // trim() để tránh lỗi do ký tự '=' cuối base64
         return hash_equals(trim($calculated), trim($hmacHeader));
     }
 
-    /**
-     * Hàm phụ để tính HMAC (phục vụ log/debug)
-     */
     private function calculateHmac(string $data): string
     {
         return base64_encode(
