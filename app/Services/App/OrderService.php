@@ -5,6 +5,7 @@ namespace App\Services\App;
 use App\Jobs\DeactiveDiscountJob;
 use App\Models\BundlesModel;
 use App\Models\ShopModel;
+use App\Models\SoldRecordModel;
 use App\Models\StoreModel;
 use App\Models\StoreTestModel;
 use App\Repository\OrderRepository;
@@ -28,46 +29,75 @@ class OrderService extends AbstractService
     public function createOrder(string $domain, array $orderData)
     {
         try {
+            // Chuẩn bị dữ liệu order
             $dataOrderSave = [
                 'domain_name' => $domain,
                 'shopify_order_id' => $orderData['id'],
-                'email'  => @$orderData['email'],
-                'total_price' => (float) $orderData['total_price'] ?? 0,
-                'subtotal_price' => (float) $orderData['subtotal_price'] ?? 0,
-                'total_discounts' => (float) $orderData['total_discounts'] ?? 0,
+                'email' => $orderData['email'] ?? null,
+                'total_price' => (float) ($orderData['total_price'] ?? 0),
+                'subtotal_price' => (float) ($orderData['subtotal_price'] ?? 0),
+                'total_discounts' => (float) ($orderData['total_discounts'] ?? 0),
                 'discount_codes' => !empty($orderData['discount_codes']) ? json_encode($orderData['discount_codes']) : null,
-                'currency' => $orderData['currency'],
-                'financial_status' => $orderData['financial_status'],
-                'fulfillment_status' => $orderData['fulfillment_status'],
-                'customer_id' => @$orderData['customer']['default_address']['customer_id'],
+                'currency' => $orderData['currency'] ?? null,
+                'financial_status' => $orderData['financial_status'] ?? null,
+                'fulfillment_status' => $orderData['fulfillment_status'] ?? null,
+                'customer_id' => $orderData['customer']['default_address']['customer_id'] ?? null,
                 'order_data' => json_encode($orderData),
             ];
             $this->orderRepository->createOrder($dataOrderSave);
-            $listItem = $orderData['line_items'];
-            $dataOrderItem = [];
 
-            foreach ($listItem as $item) {
-                $linePrice = (float) $item['price'] * (int) $item['quantity'];
-                $finalLinePrice = $linePrice - $item['total_discount'];
+            $dataOrderItem = [];
+            $dataSold = [];
+            $productIds = [];
+            $now = now();
+
+            foreach ($orderData['line_items'] as $item) {
+                if (empty($item['product_id'])) {
+                    continue;
+                }
+                $quantity = (int) ($item['quantity'] ?? 0);
+                $price = (float) ($item['price'] ?? 0);
+                $totalDiscount = (float) ($item['total_discount'] ?? 0);
+                $linePrice = $price * $quantity;
+                $finalLinePrice = $linePrice - $totalDiscount;
+
                 $dataOrderItem[] = [
                     'shop_domain' => $domain,
                     'order_id' => $orderData['id'],
-                    'product_id' => @$item['product_id'],
-                    'variant_id' => @$item['variant_id'],
-                    'title' =>  @$item['title'],
-                    'variant_title' => @$item['variant_title'],
-                    'sku' => @$item['sku'],
-                    'handle' => @$item['handle'],
-                    'vendor' => @$item['vendor'],
-                    'product_type' => @$item['product_type'],
-                    'image_url' => @$item['image_url'],
-                    'quantity' => @$item['quantity'] ?? 0,
-                    'price' => (float) $item['price'],
-                    'total_discount' => $item['total_discount'],
+                    'product_id' => $item['product_id'] ?? null,
+                    'variant_id' => $item['variant_id'] ?? null,
+                    'title' => $item['title'] ?? null,
+                    'variant_title' => $item['variant_title'] ?? null,
+                    'sku' => $item['sku'] ?? null,
+                    'handle' => $item['handle'] ?? null,
+                    'vendor' => $item['vendor'] ?? null,
+                    'product_type' => $item['product_type'] ?? null,
+                    'image_url' => $item['image_url'] ?? null,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'total_discount' => $totalDiscount,
                     'line_price' => $linePrice,
                     'final_line_price' => $finalLinePrice,
                     'line_item_data' => json_encode($item),
                 ];
+
+                $dataSold[] = [
+                    'domain_name' => $domain,
+                    'product_id' => $item['product_id'] ?? null,
+                    'product_name' => '', // update sau
+                    'product_price' => $price,
+                    'price_coupon' => $totalDiscount,
+                    'product_unit' => $quantity,
+                    'total' => $linePrice - $totalDiscount,
+                    'order_id' => $orderData['id'],
+                    'order_date' => Carbon::parse($orderData['created_at'])->toDateTimeString(),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                if (isset($item['product_id'])) {
+                    $productIds[] = $item['product_id'];
+                }
             }
 
             $dataOrderLog = [
@@ -76,14 +106,41 @@ class OrderService extends AbstractService
                 'action_type' => 'create',
                 'log_data' => json_encode($orderData),
             ];
+
+            // Cập nhật variant IDs
             $dataOrderItem = $this->getVariantIds($domain, $dataOrderItem);
-            //save order
+
+            // Lấy thông tin sản phẩm
+            $productInfo = $this->getProductInfo($domain, $productIds);
+            foreach ($productInfo as $product) {
+                foreach ($dataSold as $key => $sold) {
+                    if ($sold['product_id'] == $product['id']) {
+                        $dataSold[$key]['product_name'] = $product['title'] ?? 'text';
+                    }
+                }
+            }
+            // Lưu dữ liệu
             $this->orderRepository->createOrderItem($dataOrderItem);
             $this->orderRepository->createOrderLog($dataOrderLog);
+            if (!empty($dataSold)) {
+                SoldRecordModel::insert($dataSold);
+            }
         } catch (Exception $exception) {
             $this->sentry->captureException($exception);
-            throw $exception; // Re-throw the exception after logging
+            throw $exception;
         }
+    }
+
+
+    public function getProductInfo(string $domain, array $productIds): array
+    {
+        $shopInfo = ShopModel::where("shop", $domain)->first();
+        /** @var ShopifyApiService $shopifyApiService */
+        $shopifyApiService = app(ShopifyApiService::class);
+
+        $shopifyApiService->setShopifyHeader($domain, $shopInfo['access_token']);
+        $productInfo = $shopifyApiService->getProductsInfo($productIds);
+        return $productInfo;
     }
 
     public function deleteOrder($orderId)

@@ -43,11 +43,11 @@ class SoldRecordService extends AbstractService
     public function getSoldRecord($domain, $data)
     {
         try {
+            $data['hours'] = $data['hours'] ?? 32;
             $totalUnits = SoldRecordModel::where('domain_name', $domain)
                 ->where('product_id', $data['product_id'])
                 ->where('order_date', '>=', now()->subHours($data['hours']))
                 ->sum('product_unit');
-
             return [
                 'status'     => 'success',
                 'total_sold' => (int) $totalUnits,
@@ -65,7 +65,7 @@ class SoldRecordService extends AbstractService
     {
         try {
             $subQuery = SoldRecordModel::select('product_id', DB::raw('SUM(product_unit) as total_units'))
-                ->where('domain_name', $data['domain'])
+                ->where('domain_name', $domain)
                 ->where('order_date', '>=', now()->subDays($data['days']))
                 ->groupBy('product_id')
                 ->orderByDesc('total_units')
