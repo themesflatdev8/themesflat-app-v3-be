@@ -18,71 +18,92 @@ class WebhookVerifyHeaders
     public function handle(Request $request, Closure $next)
     {
         try {
-            // bypass header param for local testing ?bypass_header=1
+            // ✅ Cho phép bypass header khi test local: ?bypass_header=1
             if ($this->byPassHeader($request)) {
+                Log::info('Bypass webhook verify for local testing');
                 return $next($request);
             }
 
-            // lấy header theo cách Laravel (an toàn hơn)
+            // ✅ Lấy header đúng key, Shopify luôn gửi kiểu "X-Shopify-Hmac-Sha256"
             $headerHmac = $request->header('X-Shopify-Hmac-Sha256');
 
             if (!$headerHmac) {
-                $this->sentry->captureMessage('Not exists header X-Shopify-Hmac-Sha256');
-                Log::warning('Missing X-Shopify-Hmac-Sha256 header', [
-                    'path' => $request->path(),
-                    'server_keys' => array_keys($request->server()),
-                ]);
+                $msg = 'Missing X-Shopify-Hmac-Sha256 header';
+                Log::warning($msg, ['path' => $request->path()]);
+                $this->sentry->captureMessage($msg);
                 return response()->json([], 401);
             }
 
-            // dùng getContent() để lấy raw body (an toàn hơn php://input)
+            // ✅ Dùng getContent() để lấy raw body gốc, không decode
             $data = $request->getContent();
 
-            // debug logs (dev only) - KHÔNG log secret
+            // ✅ Trim CRLF nếu có (ngăn lỗi khi webhook orders/create thêm ký tự cuối)
+            $data = rtrim($data, "\r\n");
+
+            // 🧩 Debug log cơ bản
             Log::debug('Shopify webhook received', [
                 'topic' => $request->header('X-Shopify-Topic'),
-                'hmac_header' => substr($headerHmac, 0, 10) . '...', // rút gọn
+                'hmac_header_prefix' => substr($headerHmac, 0, 10) . '...',
                 'body_length' => strlen($data),
             ]);
 
+            // ✅ Verify
             $verified = $this->verifyWebhook($data, $headerHmac);
 
             if ($verified) {
                 return $next($request);
             }
 
-            // nếu không verify
+            // ❌ Không verify được → log chi tiết (ẩn bớt dữ liệu nhạy cảm)
             Log::warning('Webhook not verified', [
-                'header_hmac' => $headerHmac,
-                'calculated_hmac' => $this->calculateHmac($data), // rút gọn tiện debug
                 'topic' => $request->header('X-Shopify-Topic'),
-                'body_snippet' => substr($data, 0, 300),
+                'header_hmac' => $headerHmac,
+                'calculated_hmac' => $this->calculateHmac($data),
+                'body_length' => strlen($data),
+                'body_preview' => substr($data, 0, 500),
             ]);
-            $this->sentry->captureMessage('Webhook not verified: HMAC mismatch');
-        } catch (\Exception $exception) {
-            $this->sentry->captureException($exception);
-            Log::error('Webhook verify exception', ['message' => $exception->getMessage()]);
+
+            $this->sentry->captureMessage('Shopify Webhook HMAC mismatch');
+        } catch (\Throwable $e) {
+            Log::error('Webhook verify exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->sentry->captureException($e);
         }
 
         return response()->json([], 401);
     }
 
-    private function verifyWebhook($data, $hmac_header)
+    /**
+     * Xác thực HMAC
+     */
+    private function verifyWebhook(string $data, string $hmacHeader): bool
     {
-        // dùng hash_equals để so sánh an toàn
-        $calculated_hmac = $this->calculateHmac($data);
-        return hash_equals($calculated_hmac, $hmac_header);
+        $calculated = $this->calculateHmac($data);
+        // Dùng hash_equals để chống timing attack
+        return hash_equals($calculated, $hmacHeader);
     }
 
-    private function calculateHmac($data)
+    /**
+     * Tính HMAC base64 theo chuẩn Shopify
+     */
+    private function calculateHmac(string $data): string
     {
         $secret = config('tf_common.shopify_api_secret');
-        // trả về base64 string (Shopify yêu cầu)
+
+        if (empty($secret)) {
+            Log::error('Shopify API secret not set in config(tf_common.shopify_api_secret)');
+        }
+
         return base64_encode(hash_hmac('sha256', $data, $secret, true));
     }
 
-    private function byPassHeader(Request $request)
+    /**
+     * Cho phép bypass khi test local
+     */
+    private function byPassHeader(Request $request): bool
     {
-        return $request->boolean('bypass_header', false);
+        return (bool) $request->query('bypass_header', false);
     }
 }
