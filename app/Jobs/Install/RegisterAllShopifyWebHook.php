@@ -43,6 +43,7 @@ class RegisterAllShopifyWebHook //implements ShouldQueue
             $listWebHookRegister = $this->listWebhookRegister($shopifyApiService);
             foreach ($listWebHookRegister as $k => $v) {
                 try {
+                    dump('Register WebHook: ' . $v['topic']);
                     $shopifyApiService->post('webhooks.json', [
                         'webhook' => [
                             'address' => $v['address'],
@@ -50,8 +51,9 @@ class RegisterAllShopifyWebHook //implements ShouldQueue
                             'format' => 'json',
                         ],
                     ]);
+                    dump("success " . $v['topic']);
                 } catch (\Exception $exception) {
-                    dump($v['topic']);
+                    dump("error " . $v['topic']);
                     $sentry->captureException($exception);
                 }
             }
