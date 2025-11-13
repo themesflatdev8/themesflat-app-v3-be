@@ -28,12 +28,7 @@ class TrimStrings extends Middleware
      */
     public function handle($request, \Closure $next)
     {
-        // 🚨 BƯỚC QUAN TRỌNG NHẤT: Kiểm tra xem request có phải là webhook không.
-        // Bạn đã cấu hình route webhook là 'webhook/order/create', v.v...
-        // vì vậy, tất cả các URL bắt đầu bằng 'webhook/' nên được bỏ qua.
-        \Illuminate\Support\Facades\Log::warning('TrimStrings Debug URL: ' . $request->path());
         if ($request->is('api/webhook/*')) {
-            \Illuminate\Support\Facades\Log::warning('skip strim: ' . $request->path());
             // Nếu là webhook, chúng ta BỎ QUA middleware TrimStrings
             return $next($request);
         }

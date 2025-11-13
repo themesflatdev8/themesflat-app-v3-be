@@ -18,58 +18,31 @@ class WebhookVerifyHeaders
     public function handle(Request $request, Closure $next)
     {
         try {
+            // by pass header to testing
             if ($this->byPassHeader($request)) {
-                Log::info('Bypass webhook verify for local testing');
                 return $next($request);
             }
+            $res = $request->all();
 
-            $headerHmac = $request->header('X-Shopify-Hmac-Sha256');
-
-            if (!$headerHmac) {
-                $msg = 'Missing X-Shopify-Hmac-Sha256 header';
-                Log::warning($msg, ['path' => $request->path()]);
-                $this->sentry->captureMessage($msg);
-                return response()->json([], 401);
+            if ($headerHmac = $request->server('HTTP_X_SHOPIFY_HMAC_SHA256')) {
+                $data     = file_get_contents('php://input');
+                $verified = $this->verifyWebhook($data, $headerHmac);
+                if ($verified) {
+                    return $next($request);
+                } else {
+                    Log::warning('Webhook not verified', [
+                        'topic' => $request->header('X-Shopify-Topic'),
+                        'header_hmac' => $headerHmac,
+                        'calculated_hmac' => $this->calculateHmac($data),
+                        'body_length' => strlen($data),
+                        'body_preview' => substr($data, 0, 500),
+                    ]);
+                }
+            } else {
+                $this->sentry->captureMessage('Not exists header HTTP_X_SHOPIFY_HMAC_SHA256');
             }
-
-            // 🏆 FIX CUỐI CÙNG: Lấy body trực tiếp từ input stream PHP.
-            $data = file_get_contents('php://input');
-
-            // ✅ SỬA LỖI DỨT KHOÁT: Loại bỏ khoảng trắng/xuống dòng thừa ở đầu/cuối
-            // Đây là bước quan trọng để đảm bảo chuỗi là nguyên khối JSON
-            $data = trim($data);
-
-            Log::debug('Shopify webhook received', [
-                'topic' => $request->header('X-Shopify-Topic'),
-                'hmac_header_prefix' => substr($headerHmac, 0, 10) . '...',
-                'body_length' => strlen($data),
-            ]);
-
-            $verified = $this->verifyWebhook($data, $headerHmac);
-
-            if ($verified) {
-                // Nếu xác thực thành công, chúng ta cần gán lại body vào Request object
-                // để controller (hoặc các middleware tiếp theo) có thể đọc được.
-                $request->replace((array) json_decode($data, true));
-                return $next($request);
-            }
-
-            // ❌ Không verify được → log chi tiết
-            Log::warning('Webhook not verified', [
-                'topic' => $request->header('X-Shopify-Topic'),
-                'header_hmac' => $headerHmac,
-                'calculated_hmac' => $this->calculateHmac($data),
-                'body_length' => strlen($data),
-                'body_preview' => substr($data, 0, 500),
-            ]);
-
-            $this->sentry->captureMessage('Shopify Webhook HMAC mismatch');
-        } catch (\Throwable $e) {
-            Log::error('Webhook verify exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            $this->sentry->captureException($e);
+        } catch (\Exception $exception) {
+            $this->sentry->captureException($exception);
         }
 
         return response()->json([], 401);
