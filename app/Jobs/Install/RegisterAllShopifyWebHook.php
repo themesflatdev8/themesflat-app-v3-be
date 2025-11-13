@@ -9,7 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class RegisterAllShopifyWebHook implements ShouldQueue
+class RegisterAllShopifyWebHook //implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -51,6 +51,7 @@ class RegisterAllShopifyWebHook implements ShouldQueue
                         ],
                     ]);
                 } catch (\Exception $exception) {
+                    dump($v['topic']);
                     $sentry->captureException($exception);
                 }
             }
