@@ -51,7 +51,7 @@ class WebhookVerifyHeaders
      */
     private function verifyWebhook($data, $hmac_header)
     {
-        $calculated_hmac = base64_encode(hash_hmac('sha256', $data, config('fa_common.shopify_api_secret'), true));
+        $calculated_hmac = base64_encode(hash_hmac('sha256', $data, config('tf_common.shopify_api_secret'), true));
 
         return ($hmac_header == $calculated_hmac);
     }
