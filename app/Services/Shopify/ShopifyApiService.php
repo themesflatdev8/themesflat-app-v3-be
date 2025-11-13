@@ -83,7 +83,9 @@ class ShopifyApiService
                     'body' => json_encode($data),
                 ]
             );
+            dump($response->getBody()->getContents());
         } catch (\Exception $exception) {
+            dump($exception);
             $this->sentry->captureException($exception);
             return false;
         }
