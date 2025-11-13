@@ -33,9 +33,11 @@ class WebhookVerifyHeaders
             }
 
             // 🏆 FIX CUỐI CÙNG: Lấy body trực tiếp từ input stream PHP.
-            // Điều này đảm bảo chúng ta có RAW body 100% gốc,
-            // bỏ qua mọi cơ chế can thiệp tiềm ẩn của Laravel/Symfony.
             $data = file_get_contents('php://input');
+
+            // ✅ SỬA LỖI DỨT KHOÁT: Loại bỏ khoảng trắng/xuống dòng thừa ở đầu/cuối
+            // Đây là bước quan trọng để đảm bảo chuỗi là nguyên khối JSON
+            $data = trim($data);
 
             Log::debug('Shopify webhook received', [
                 'topic' => $request->header('X-Shopify-Topic'),
@@ -86,8 +88,6 @@ class WebhookVerifyHeaders
         if (empty($secret)) {
             Log::error('Shopify API secret not set in config(tf_common.shopify_api_secret)');
         }
-
-        // ❌ Xóa log debug Secret Key sau khi đã xác nhận nó đúng
 
         return base64_encode(hash_hmac('sha256', $data, $secret, true));
     }
