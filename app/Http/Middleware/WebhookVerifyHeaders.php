@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+
 
 class WebhookVerifyHeaders
 {
@@ -18,55 +20,37 @@ class WebhookVerifyHeaders
     public function handle(Request $request, Closure $next)
     {
         try {
-            // by pass header to testing
-            if ($this->byPassHeader($request)) {
-                return $next($request);
-            }
-            $res = $request->all();
+            $hmacHeader = strval($request->header('X-Shopify-Hmac-SHA256'));
+            $data = strval(file_get_contents('php://input'));
 
-            if ($headerHmac = $request->server('HTTP_X_SHOPIFY_HMAC_SHA256')) {
-                $data     = file_get_contents('php://input');
-                $verified = $this->verifyWebhook($data, $headerHmac);
-                if ($verified) {
-                    return $next($request);
-                } else {
-                    Log::warning('Webhook not verified', [
-                        'topic' => $request->header('X-Shopify-Topic'),
-                        'header_hmac' => $headerHmac,
-                        'calculated_hmac' => $this->calculateHmac($data),
-                        'body_length' => strlen($data),
-                        'body_preview' => substr($data, 0, 500),
-                    ]);
-                }
-            } else {
-                $this->sentry->captureMessage('Not exists header HTTP_X_SHOPIFY_HMAC_SHA256');
+            if (! $this->verifyWebhook($data, $hmacHeader)) {
+                return response([
+                    'error' => 'Invalid HMAC header',
+                ], SymfonyResponse::HTTP_UNAUTHORIZED);
             }
-        } catch (\Exception $exception) {
-            $this->sentry->captureException($exception);
+
+            if ($driver = config('shopify-webhooks.logging.driver')) {
+                Log::channel($driver)->log(
+                    config('shopify-webhooks.logging.level'),
+                    'Shopify webhook received',
+                    [
+                        'headers' => $request->header(),
+                        'body' => $request->all(),
+                    ],
+                );
+            }
+
+            return $next($request);
+        } catch (\Exception $e) {
+            $this->sentry->captureException($e);
+            return response()->json([], 401);
         }
-
-        return response()->json([], 401);
     }
 
     private function verifyWebhook(string $data, string $hmacHeader): bool
     {
-        $calculated = $this->calculateHmac($data);
-        return hash_equals($calculated, $hmacHeader);
-    }
+        $calculated_hmac = base64_encode(hash_hmac('sha256', $data, config('shopify-webhook.signature'), true));
 
-    private function calculateHmac(string $data): string
-    {
-        $secret = config('tf_common.shopify_api_secret');
-
-        if (empty($secret)) {
-            Log::error('Shopify API secret not set in config(tf_common.shopify_api_secret)');
-        }
-
-        return base64_encode(hash_hmac('sha256', $data, $secret, true));
-    }
-
-    private function byPassHeader(Request $request): bool
-    {
-        return (bool) $request->query('bypass_header', false);
+        return hash_equals($calculated_hmac, $hmacHeader);
     }
 }
