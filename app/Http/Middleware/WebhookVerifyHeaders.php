@@ -27,6 +27,10 @@ class WebhookVerifyHeaders
                 return response([
                     'error' => 'Invalid HMAC header',
                 ], SymfonyResponse::HTTP_UNAUTHORIZED);
+                Log::warning('Invalid HMAC header for Shopify webhook', [
+                    'headers' => $request->headers->all(),
+                    'body' => $data,
+                ]);
             }
 
             if ($driver = config('shopify-webhooks.logging.driver')) {
