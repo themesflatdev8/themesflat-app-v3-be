@@ -18,13 +18,11 @@ class WebhookVerifyHeaders
     public function handle(Request $request, Closure $next)
     {
         try {
-            // ✅ Cho phép bypass header khi test local: ?bypass_header=1
             if ($this->byPassHeader($request)) {
                 Log::info('Bypass webhook verify for local testing');
                 return $next($request);
             }
 
-            // ✅ Lấy header đúng key, Shopify luôn gửi kiểu "X-Shopify-Hmac-Sha256"
             $headerHmac = $request->header('X-Shopify-Hmac-Sha256');
 
             if (!$headerHmac) {
@@ -34,27 +32,27 @@ class WebhookVerifyHeaders
                 return response()->json([], 401);
             }
 
-            // ✅ Dùng getContent() để lấy raw body gốc, không decode
-            $data = $request->getContent();
+            // 🏆 FIX CUỐI CÙNG: Lấy body trực tiếp từ input stream PHP.
+            // Điều này đảm bảo chúng ta có RAW body 100% gốc,
+            // bỏ qua mọi cơ chế can thiệp tiềm ẩn của Laravel/Symfony.
+            $data = file_get_contents('php://input');
 
-            // ❌ (ĐÃ BỎ) Dòng rtrim($data, "\r\n") đã bị xóa.
-            // Chúng ta phải xác thực trên chính xác 100% nội dung gốc Shopify gửi.
-
-            // 🧩 Debug log cơ bản
             Log::debug('Shopify webhook received', [
                 'topic' => $request->header('X-Shopify-Topic'),
                 'hmac_header_prefix' => substr($headerHmac, 0, 10) . '...',
                 'body_length' => strlen($data),
             ]);
 
-            // ✅ Verify
             $verified = $this->verifyWebhook($data, $headerHmac);
 
             if ($verified) {
+                // Nếu xác thực thành công, chúng ta cần gán lại body vào Request object
+                // để controller (hoặc các middleware tiếp theo) có thể đọc được.
+                $request->replace((array) json_decode($data, true));
                 return $next($request);
             }
 
-            // ❌ Không verify được → log chi tiết (ẩn bớt dữ liệu nhạy cảm)
+            // ❌ Không verify được → log chi tiết
             Log::warning('Webhook not verified', [
                 'topic' => $request->header('X-Shopify-Topic'),
                 'header_hmac' => $headerHmac,
@@ -75,19 +73,12 @@ class WebhookVerifyHeaders
         return response()->json([], 401);
     }
 
-    /**
-     * Xác thực HMAC
-     */
     private function verifyWebhook(string $data, string $hmacHeader): bool
     {
         $calculated = $this->calculateHmac($data);
-        // Dùng hash_equals để chống timing attack
         return hash_equals($calculated, $hmacHeader);
     }
 
-    /**
-     * Tính HMAC base64 theo chuẩn Shopify
-     */
     private function calculateHmac(string $data): string
     {
         $secret = config('tf_common.shopify_api_secret');
@@ -96,12 +87,11 @@ class WebhookVerifyHeaders
             Log::error('Shopify API secret not set in config(tf_common.shopify_api_secret)');
         }
 
+        // ❌ Xóa log debug Secret Key sau khi đã xác nhận nó đúng
+
         return base64_encode(hash_hmac('sha256', $data, $secret, true));
     }
 
-    /**
-     * Cho phép bypass khi test local
-     */
     private function byPassHeader(Request $request): bool
     {
         return (bool) $request->query('bypass_header', false);
