@@ -32,7 +32,7 @@ class TrimStrings extends Middleware
         // Bạn đã cấu hình route webhook là 'webhook/order/create', v.v...
         // vì vậy, tất cả các URL bắt đầu bằng 'webhook/' nên được bỏ qua.
 
-        if ($request->is('webhook/*')) {
+        if ($request->is('api/webhook/*')) {
             // Nếu là webhook, chúng ta BỎ QUA middleware TrimStrings
             return $next($request);
         }
