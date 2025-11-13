@@ -37,8 +37,8 @@ class WebhookVerifyHeaders
             // ✅ Dùng getContent() để lấy raw body gốc, không decode
             $data = $request->getContent();
 
-            // ✅ Trim CRLF nếu có (ngăn lỗi khi webhook orders/create thêm ký tự cuối)
-            $data = rtrim($data, "\r\n");
+            // ❌ (ĐÃ BỎ) Dòng rtrim($data, "\r\n") đã bị xóa.
+            // Chúng ta phải xác thực trên chính xác 100% nội dung gốc Shopify gửi.
 
             // 🧩 Debug log cơ bản
             Log::debug('Shopify webhook received', [
