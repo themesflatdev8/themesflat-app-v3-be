@@ -48,13 +48,17 @@ Route::group(['prefix' => 'webhook'], function () {
     Route::post('customers/redact', [WebhookController::class, 'customerRedact']);
     Route::post('shop/redact', [WebhookController::class, 'shopRedact']);
 
+    Route::post('order/create', [WebhookController::class, 'orderCreate'])->middleware('webhook.verify_header');
+    Route::post('order/edited', [WebhookController::class, 'orderEdited'])->middleware('webhook.verify_header');
+    Route::post('order/delete', [WebhookController::class, 'orderDelete'])->middleware('webhook.verify_header');
+    Route::post('order/cancel', [WebhookController::class, 'orderCancel'])->middleware('webhook.verify_header');
 
-    Route::group(['prefix' => 'order'], function () {
-        Route::post('/create', [WebhookController::class, 'orderCreate']);
-        Route::post('/edited', [WebhookController::class, 'orderEdited']);
-        Route::post('/delete', [WebhookController::class, 'orderDelete']);
-        Route::post('/cancel', [WebhookController::class, 'orderCancel']);
-    });
+    // Route::group(['prefix' => 'order'], function () {
+    //     Route::post('/create', [WebhookController::class, 'orderCreate']);
+    //     Route::post('/edited', [WebhookController::class, 'orderEdited']);
+    //     Route::post('/delete', [WebhookController::class, 'orderDelete']);
+    //     Route::post('/cancel', [WebhookController::class, 'orderCancel']);
+    // });
 
 
     Route::get('all', function (Illuminate\Http\Request $request) {

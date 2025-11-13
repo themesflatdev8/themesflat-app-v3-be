@@ -24,7 +24,7 @@ class WebhookController extends Controller
 
     public function __construct(ShopModel $shopModel, ProductModel $productModel)
     {
-        $this->middleware('webhook.verify_header');
+        // $this->middleware('webhook.verify_header');
         $this->shopModel = $shopModel;
         $this->productModel = $productModel;
         $this->sentry = app('sentry');
